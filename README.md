@@ -6,11 +6,15 @@ Tout tourne dans le navigateur, sans serveur. Le travail est enregistré sur l'a
 
 ## Parcours
 
-1. **Illustration** : importer ou choisir l'image, la cadrer (centrage automatique sur le sujet).
-2. **Finitions** : poser une finition, choisir sa zone (masque), superposer plusieurs masques.
-3. **Série** : cartes du set, raretés, taux de tirage, planche d'imposition.
-4. **Maquettes** : booster, display, slab gradé, cadre, classeur, en 3D.
+1. **Format** : taille de la carte, carton, laminage, tranche ; gabarit à l'échelle.
+2. **Illustration** : importer ou choisir l'image, la cadrer (centrage automatique sur le sujet), recto et verso côte à côte.
+3. **Finitions** : poser une finition, choisir sa zone (masque), superposer plusieurs masques.
+4. **Série** : cartes du set, raretés, taux de tirage, planche d'imposition.
 5. **Impression** : plans de découpe, contrôle avant impression, export.
+
+Pour présenter :
+
+- **Maquettes** : booster, display, slab gradé, cadre, classeur, en 3D.
 
 En dehors du parcours :
 

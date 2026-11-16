@@ -96,14 +96,16 @@ T = '''<script>(function(){try{var d=document.documentElement,t=localStorage.get
       <button type="button" data-page="accueil" aria-pressed="false">[[home]]<span>Accueil</span></button>
       <p class="nav__cap">Parcours</p>
       <div class="nav__flow" role="group" aria-label="Les étapes, dans l'ordre">
-        <button type="button" data-page="image" aria-pressed="false" title="Étape 1 : choisir et cadrer l'image">[[image]]<span>Illustration</span><small>Choisir et cadrer l'image</small></button>
-        <button type="button" data-page="atelier" aria-pressed="true" title="Étape 2 : effets d'impression et leurs zones">[[atelier]]<span>Finitions</span><small>Effets d'impression et zones</small></button>
-        <button type="button" data-page="serie" aria-pressed="false" title="Étape 3 : les cartes de la série">[[serie]]<span>Série</span><small>Cartes, raretés, tirages</small></button>
-        <button type="button" data-page="maquettes" aria-pressed="false" title="Étape 4 : la carte en volume">[[cube]]<span>Maquettes</span><small>La carte en volume</small></button>
+        <button type="button" data-page="format" aria-pressed="false" title="Étape 1 : format de la carte et carton">[[card]]<span>Format</span><small>Taille de la carte et carton</small></button>
+        <button type="button" data-page="image" aria-pressed="false" title="Étape 2 : choisir et cadrer l'image">[[image]]<span>Illustration</span><small>Choisir et cadrer l'image</small></button>
+        <button type="button" data-page="atelier" aria-pressed="true" title="Étape 3 : effets d'impression et leurs zones">[[atelier]]<span>Finitions</span><small>Effets d'impression et zones</small></button>
+        <button type="button" data-page="serie" aria-pressed="false" title="Étape 4 : les cartes de la série">[[serie]]<span>Série</span><small>Cartes, raretés, tirages</small></button>
         <button type="button" data-page="plans" aria-pressed="false" title="Étape 5 : fichiers pour l'imprimeur">[[scissors]]<span>Impression</span><small>Fichiers pour l'imprimeur</small></button>
       </div>
-      <p class="nav__cap">Outils</p>
+      <p class="nav__cap">Présenter</p>
+      <button type="button" data-page="maquettes" aria-pressed="false" title="La carte en volume : booster, slab, cadre">[[cube]]<span>Maquettes</span><small>La carte en volume</small></button>
       <button type="button" data-page="studio" aria-pressed="false" title="Filmer la carte : mouvements, décors, effets, vidéo">[[camera]]<span>Studio</span><small>Filmer tes cartes</small></button>
+      <p class="nav__cap">En plus</p>
       <button type="button" data-page="creation" aria-pressed="false" title="Option : ajouter un cadre, un nom, des textes">[[edit]]<span>Cadre et texte</span><small>En option</small></button>
       <button type="button" id="tourBtn" data-tour title="Guide pas à pas : fabrique une carte avec moi">[[book]]<span>Guide</span><small>Pas à pas, avec toi</small></button>
     </nav>
@@ -134,16 +136,6 @@ T = '''<script>(function(){try{var d=document.documentElement,t=localStorage.get
     <button type="button" class="btn small" id="pageNext" hidden><span id="pageNextT">Étape suivante</span> [[right.s]]</button>
     <div class="top__right">
       <span id="saveState">Enregistré localement</span>
-      <div class="menu"><button type="button" class="spec" id="formatBtn" title="Format de la carte"><span class="glyph"></span><span id="formatVal">63 × 88 mm</span></button>
-        <div class="pop" id="formatPop" hidden>
-@@FORMATPOP@@
-        </div>
-      </div>
-      <div class="menu"><button type="button" class="spec" id="stockBtn" title="Carton, laminage et tranche">Carton <small>0,33 mm</small></button>
-        <div class="pop" id="stockPop" hidden>
-@@STOCKPOP@@
-        </div>
-      </div>
       <span class="sep"></span>
       <button type="button" class="btn icon ghost" id="themeBtn" title="Passer en mode sombre" aria-label="Passer en mode sombre">[[moon]]</button>
       <button type="button" class="btn icon ghost" id="undo" title="Annuler (Ctrl Z)" aria-label="Annuler">[[undo]]</button>
@@ -161,11 +153,11 @@ T = '''<script>(function(){try{var d=document.documentElement,t=localStorage.get
     <div class="home">
       <div class="hero" id="hero">
         <div class="hero__txt">
-          <p class="hero__eye">Série en cours</p>
-          <h2 class="hero__title" id="homeTitle">Ma série</h2>
-          <p class="hero__meta" id="homeState"></p>
+          <p class="hero__eye">Série en cours : <b id="homeTitle">Ma série</b><span id="homeState"></span></p>
+          <h2 class="hero__title">Tes cartes, telles qu'elles sortiront de l'imprimerie.</h2>
+          <p class="hero__lead">Pose de l'holo, de la dorure, du vernis ou du relief, incline la carte pour voir le reflet, puis envoie des fichiers propres à l'imprimeur.</p>
           <div class="hero__acts">
-            <button type="button" class="btn primary big" id="homeGo" data-go="image"><span id="homeGoT">Commencer par l'illustration</span> [[right.s]]</button>
+            <button type="button" class="btn primary big" id="homeGo" data-go="format"><span id="homeGoT">Commencer : choisir le format</span> [[right.s]]</button>
             <button type="button" class="btn big hero__alt" data-tour>[[book.s]] Suivre le guide pas à pas</button>
           </div>
           <p class="hero__hint">Passe le pointeur sur la carte : ses finitions réagissent à la lumière.</p>
@@ -178,32 +170,62 @@ T = '''<script>(function(){try{var d=document.documentElement,t=localStorage.get
           </div>
         </div>
       </div>
-      <div class="home__sec"><h3>Le parcours</h3><p>Cinq étapes, de l'image au fichier. Tu peux revenir sur chacune à tout moment.</p></div>
+      <div class="home__sec"><h3>Le parcours</h3><p>Cinq étapes, de la feuille blanche au fichier pour l'imprimeur. Tu peux revenir sur chacune à tout moment.</p></div>
       <ol class="journey">
-        <li><button type="button" class="jstep" data-go="image">[[image]]<i>Étape 1</i><b>Illustration</b><span>Importe ton image ou prends un exemple, puis cadre-la sur la carte.</span></button></li>
-        <li><button type="button" class="jstep" data-go="atelier">[[atelier]]<i>Étape 2</i><b>Finitions</b><span>Holo, dorure, vernis, relief : règle les effets et leurs zones.</span></button></li>
-        <li><button type="button" class="jstep" data-go="serie">[[serie]]<i>Étape 3</i><b>Série</b><span>Toutes les cartes du set, leurs raretés et les tirages.</span></button></li>
-        <li><button type="button" class="jstep" data-go="maquettes">[[cube]]<i>Étape 4</i><b>Maquettes</b><span>Booster, display, slab, cadre : ta carte en volume.</span></button></li>
-        <li><button type="button" class="jstep" data-go="plans">[[scissors]]<i>Étape 5</i><b>Impression</b><span>Plans de découpe, contrôle et fichiers pour l'imprimeur.</span></button></li>
+        <li><button type="button" class="jstep" data-go="format"><span class="jv jv--format" aria-hidden="true"><span class="jc"><em class="jdim jdim--w" id="jvW">63 mm</em><em class="jdim jdim--h" id="jvH">88 mm</em></span></span><i>Étape 1</i><b>Format</b><span>Choisis la taille de la carte et son carton. Tout le reste s'y adapte.</span></button></li>
+        <li><button type="button" class="jstep" data-go="image"><span class="jv jv--image" aria-hidden="true"><span class="jc jthumb"></span></span><i>Étape 2</i><b>Illustration</b><span>Importe ton image, cadre-la, compare le recto et le verso.</span></button></li>
+        <li><button type="button" class="jstep" data-go="atelier"><span class="jv jv--fx" aria-hidden="true"><span class="jc jthumb"></span></span><i>Étape 3</i><b>Finitions</b><span>Holo, dorure, vernis, relief : pose les effets et leurs zones.</span></button></li>
+        <li><button type="button" class="jstep" data-go="serie"><span class="jv jv--serie" aria-hidden="true"><span class="jc jthumb" data-k="1"></span><span class="jc jthumb" data-k="2"></span><span class="jc jthumb"></span></span><i>Étape 4</i><b>Série</b><span>Décline tes cartes, donne-leur une rareté, règle les tirages.</span></button></li>
+        <li><button type="button" class="jstep" data-go="plans"><span class="jv jv--print" aria-hidden="true"><span class="jprint"><span class="jc jthumb"></span></span></span><i>Étape 5</i><b>Impression</b><span>Plans de découpe, contrôle et fichiers pour l'imprimeur.</span></button></li>
       </ol>
-      <div class="home__sec"><h3>Outils</h3><p>En dehors du parcours, quand tu en as besoin.</p></div>
-      <div class="tools">
+      <div class="home__sec"><h3>Présenter</h3><p>Montre tes cartes avant même de les imprimer.</p></div>
+      <div class="show">
+        <button type="button" class="tool tool--mock" data-go="maquettes"><span class="tool__txt">[[cube]]<b>Maquettes 3D</b><span>Booster, display, slab gradé, cadre, classeur : ta carte en volume, à faire tourner à la souris.</span><em>Ouvrir les maquettes [[right.s]]</em></span><span class="tool__slab" aria-hidden="true"><span class="slab"><span class="slab__lab"></span><span class="jc jthumb"></span></span></span></button>
         <button type="button" class="tool tool--studio" data-go="studio"><span class="tool__txt">[[camera]]<b>Studio</b><span>Filme tes cartes : mouvements, deck, décors et effets, puis une vidéo prête à partager.</span><em>Ouvrir le Studio [[right.s]]</em></span><span class="tool__fan" id="homeFan" aria-hidden="true"><i></i><i></i><i></i></span></button>
-        <button type="button" class="tool" data-go="creation">[[edit]]<b>Cadre et texte</b><span>En option : ajoute une bordure, un nom ou des textes si ton illustration n'en a pas déjà.</span></button>
-        <button type="button" class="tool" data-go="guide">[[book]]<b>Comprendre une carte</b><span>Zones, marges, fond perdu : le vocabulaire de l'imprimeur, expliqué simplement.</span></button>
+      </div>
+      <div class="home__sec"><h3>En plus</h3></div>
+      <div class="extras">
+        <button type="button" class="tool" data-go="creation">[[edit]]<b>Cadre et texte</b><span>En option : une bordure, un nom ou des textes si ton illustration n'en a pas déjà.</span></button>
+        <button type="button" class="tool" data-go="guide">[[help]]<b>Comprendre une carte</b><span>Zones, marges, fond perdu : le vocabulaire de l'imprimeur, expliqué simplement.</span></button>
+        <button type="button" class="tool" data-tour>[[book]]<b>Guide pas à pas</b><span>Je t'accompagne du format au fichier d'impression, pendant que tu manipules.</span></button>
       </div>
       <div class="home__sec home__sec--row"><h3>Tes cartes</h3><button type="button" class="link-btn" data-go="serie">Ouvrir la série [[right.s]]</button></div>
       <div class="hstrip" id="homeCards"></div>
     </div>
   </section>
 
+  <!-- ===== Format ===== -->
+  <section class="page" id="page-format" hidden>
+    <div class="work">
+      <div class="work__main">
+        <div class="panel fmtmain">
+          <div class="fmtmain__head"><h2 id="fmtName">Format</h2><span id="formatVal">63 × 88 mm</span></div>
+          <div class="fmtviz" id="fmtViz"></div>
+          <div class="fmtlegend"><span class="is-bleed"><i></i>Fond perdu : l'image déborde jusque-là</span><span><i></i>Coupe : le bord de la carte finie</span><span class="is-safe"><i></i>Zone sûre : textes et éléments importants</span></div>
+          <dl class="fmtfacts" id="fmtFacts"></dl>
+          <p class="fmtstock" id="stockBtn">Carton <small>0,33 mm</small></p>
+        </div>
+      </div>
+      <aside class="panel insp" id="fmtSide" aria-label="Format et carton">
+        <div class="tabpane">
+          <div><h2>Format de la carte</h2><p class="note">Choisis le jeu ou le format le plus proche du tien. Le cadrage, les plans de découpe et les maquettes s'y adaptent.</p></div>
+@@FORMATPOP@@
+          <div><h2>Carton et laminage</h2><p class="note">Le carton, sa teinte, le laminage et la tranche se voient sur la carte et sont reportés dans la fiche pour l'imprimeur.</p></div>
+@@STOCKPOP@@
+          <div class="row"><button type="button" class="btn primary" data-go="image">Étape suivante : illustration [[right.s]]</button></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
   <!-- ===== Illustration ===== -->
   <section class="page" id="page-image" hidden>
     <div class="work">
-      <div class="work__main"><div id="imageStageHost"></div></div>
+      <div class="work__main"><div id="imageStageHost"><div class="panel split" id="splitPanel" hidden><div class="stagebar"><b id="splitName">Verso</b><span class="spacer"></span><button type="button" class="btn small" id="splitSwap" title="Passe sur cette face pour la modifier">[[flip.s]] Travailler sur cette face</button></div><div class="split__stage"><canvas id="splitCv" width="640" height="894" aria-label="L'autre face de la carte"></canvas></div></div></div></div>
       <aside class="panel insp" id="imgSide" aria-label="Choisir l'illustration">
         <div class="tabpane">
           <div><h2>Choisir l'illustration</h2><p class="note" id="crFormat"></p></div>
+          <div class="seg" id="splitSeg" role="group" aria-label="Affichage de la carte"><button type="button" data-split="0" aria-pressed="true">Une face</button><button type="button" data-split="1" aria-pressed="false" title="Affiche le recto et le verso en même temps">[[compare.s]] Recto et verso côte à côte</button></div>
           <div class="notice" id="crNoArt" hidden>[[help.s]]<span>Aucune illustration sur cette carte pour l'instant. Importe la tienne ou clique sur un exemple.</span></div>
           <div class="row"><label class="btn" for="file">[[upload.s]] Importer mon image</label><button type="button" class="btn" id="crLib">[[grid.s]] Ouvrir la bibliothèque</button></div>
           <div class="imggrid" id="imgGrid"></div>

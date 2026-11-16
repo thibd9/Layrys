@@ -4,7 +4,8 @@
   const tourMain = () => { const imgs = project.front.layers.filter(l => l.kind === "image" && l.src); return [...imgs].reverse().find(l => l.visible) || imgs[0] || null; };
   const TOUR = [
     { page: "accueil", title: "Bienvenue dans Layrys", text: "Je te guide pour fabriquer ta première carte, de l'image au fichier d'impression. Tu peux manipuler l'app pendant que je t'explique, et quitter quand tu veux." },
-    { page: "image", target: "#imgGrid", title: "Choisis ton illustration", text: "C'est le point de départ. Clique sur un exemple, ou importe ta propre image avec le bouton au-dessus.", todo: "Clique sur une image",
+    { page: "format", target: "#formats", title: "Choisis le format", text: "Tout part de là : la taille de la carte et son carton. Prends le jeu le plus proche du tien, tu pourras en changer plus tard." },
+    { page: "image", target: "#imgGrid", title: "Choisis ton illustration", text: "C'est l'image de ta carte. Clique sur un exemple, ou importe ta propre image avec le bouton au-dessus.", todo: "Clique sur une image",
       start: s => { const l = tourMain(); s.v = l ? l.src : null; }, done: s => { const l = tourMain(); return !!l && l.src !== s.v; } },
     { page: "image", target: "#card", title: "Cadre l'image", text: "Glisse l'image sur la carte pour la placer. La molette l'agrandit ou la réduit. Elle doit couvrir toute la carte, bords compris.", todo: "Déplace ou redimensionne l'image",
       start: s => { const l = tourMain(); s.v = l ? [l.x, l.y, l.scale].join() : ""; }, done: s => { const l = tourMain(); return !!l && [l.x, l.y, l.scale].join() !== s.v; } },
@@ -16,8 +17,8 @@
       start: s => { s.v = false; }, done: s => { if (!s.v) { const a = parseFloat(getComputedStyle(tiltEl).getPropertyValue("--rotate-x")) || 0, b = parseFloat(getComputedStyle(tiltEl).getPropertyValue("--rotate-y")) || 0; if (Math.abs(a) + Math.abs(b) > 2) s.v = true; } return s.v; } },
     { page: "atelier", target: "#stack", title: "Superpose plusieurs finitions", text: "Chaque finition est un calque, avec la vignette de son masque. « Ajouter un masque » en pose une autre par-dessus, par exemple un vernis brillant sur le sujet." },
     { page: "serie", title: "Construis ta série", text: "Ajoute les autres cartes, donne-leur une rareté, décline une même carte en plusieurs versions. Chaque carte garde ses propres finitions." },
-    { page: "maquettes", target: "#mkStage", title: "Vois-la en volume", text: "Booster, slab gradé, cadre, classeur : choisis un support dans la barre du haut, puis fais-le tourner à la souris." },
     { page: "plans", target: "#exportBtn", title: "Prépare l'impression", text: "Cette page réunit le plan de découpe et le contrôle avant impression. Le bouton « Exporter » donne le dossier pour l'imprimeur : visuels, masques de finition, plans." },
+    { page: "maquettes", target: "#mkStage", title: "Vois-la en volume", text: "Booster, slab gradé, cadre, classeur : choisis un support dans la barre du haut, puis fais-le tourner à la souris." },
     { page: "accueil", title: "Tu connais le parcours", text: "Ton travail est enregistré sur cet appareil. Si ton illustration n'a ni cadre ni nom, l'option « Cadre et texte » du menu en ajoute. Tu peux relancer ce guide à tout moment depuis le menu." },
   ];
   const tour = { i: -1, st: {}, timer: 0, el: null };

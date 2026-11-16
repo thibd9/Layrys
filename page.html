@@ -792,6 +792,90 @@ select.mini { min-height: 28px; padding: 3px 26px 3px 9px; font-size: 12.5px; fo
   .hero__stage { height: 270px; }
 }
 @media (max-width: 520px) { .tools { grid-template-columns: minmax(0, 1fr); } .tool { min-height: 0; } .tool--studio { grid-template-columns: minmax(0, 1fr); } .tool__fan { display: none; } .hero__acts .btn { flex: 1 1 100%; } }
+/* ---- v46: the Format step, the two faces side by side, a home that shows what each step does ---- */
+@media (min-width: 981px) and (min-height: 560px) {
+  #page-format { overflow: hidden; display: flex; flex-direction: column; }
+  #page-format > .work { flex: 1; min-height: 0; align-items: stretch; grid-template-rows: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr) 440px; gap: 14px; }
+  #page-format .work__main { display: flex; flex-direction: column; min-height: 0; }
+  #page-format .insp { position: static; max-height: none; height: 100%; }
+}
+#page-format .formats { max-height: none; overflow: visible; }
+.fmtmain { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+.fmtmain__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 16px 18px 0; }
+.fmtmain__head h2 { font-size: 19px; } .fmtmain__head #formatVal { font-size: 14.5px; color: var(--muted); font-weight: 600; }
+.fmtviz { flex: 1; min-height: 300px; display: grid; place-items: center; margin: 12px 18px; padding: 14px; border-radius: 14px; color: var(--stage-ink); background: radial-gradient(var(--stage-dot) 1px, transparent 1.4px) 0 0 / 16px 16px, linear-gradient(var(--stage-2), var(--stage)); overflow: hidden; }
+.fmtviz svg { display: block; width: 100%; height: 100%; max-height: 62vh; }
+.fmtviz text { font: 600 3.7px var(--font-body); fill: currentColor; }
+.fmtlegend { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 0 18px; font-size: 12.5px; color: var(--muted); }
+.fmtlegend span { display: inline-flex; align-items: center; gap: 7px; } .fmtlegend i { width: 18px; height: 0; border-top: 2px solid var(--ink); } .fmtlegend .is-bleed i { border-top: 2px dashed var(--err); } .fmtlegend .is-safe i { border-top: 2px dashed var(--ok); }
+.fmtfacts { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 12px 18px 0; border: 1px solid var(--line); border-radius: 12px; }
+.fmtfacts div { padding: 10px 12px; min-width: 0; } .fmtfacts div + div { border-left: 1px solid var(--line); }
+.fmtfacts dt { font-size: 11.5px; color: var(--muted); } .fmtfacts dd { margin: 2px 0 0; font-size: 13.5px; font-weight: 600; }
+.fmtstock { padding: 10px 18px 16px; font-size: 13px; font-weight: 600; } .fmtstock small { font-size: inherit; font-weight: 500; color: var(--muted); }
+@media (max-width: 1180px) { .fmtfacts { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fmtfacts div + div { border-left: 0; } .fmtfacts div { border-top: 1px solid var(--line); } .fmtfacts div:nth-child(-n+2) { border-top: 0; } .fmtfacts div:nth-child(even) { border-left: 1px solid var(--line); } }
+@media (max-width: 980px) { .fmtviz svg { height: 340px; } }
+
+/* the two faces side by side */
+#imageStageHost { gap: 14px; } #splitPanel { order: 2; } #splitSeg { justify-self: start; min-height: 36px; overflow: visible; } #page-image.is-split .stage__info { display: none; }
+.split { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.split__stage { flex: 1; min-height: 0; display: grid; place-items: center; padding: 22px; background: radial-gradient(var(--stage-dot) 1px, transparent 1.4px) 0 0 / 16px 16px, linear-gradient(var(--stage-2), var(--stage)); }
+.split__stage canvas { display: block; max-width: 82%; max-height: 78%; height: auto; width: auto; cursor: pointer; box-shadow: 0 2px 4px rgba(20,16,6,.18), 0 22px 40px -18px rgba(20,16,6,.5); transition: transform .18s ease-out; }
+.split__stage canvas:hover { transform: translateY(-3px); }
+.split .stagebar b { font-family: var(--font-display); font-size: 13.5px; }
+@media (max-width: 980px) { #imageStageHost { display: grid; } .split__stage { height: 420px; } .split__stage canvas { max-height: 376px; } }
+@media (min-width: 981px) and (max-width: 1500px) { #page-image.is-split > .work { grid-template-columns: minmax(0, 1fr) 360px; } }
+
+/* home */
+.hero__eye { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid rgba(255,176,97,.28); background: rgba(255,138,43,.1); font-size: 12.5px; font-weight: 500; color: #e8c9a6; }
+.hero__eye b { font-weight: 600; color: #ffb061; }
+.hero__title { font-size: clamp(28px, 3.1vw, 44px); line-height: 1.08; max-width: 14.5em; -webkit-line-clamp: 4; }
+.hero__lead { max-width: 46ch; font-size: 15px; line-height: 1.5; color: #c4beb0; }
+.home__sec h3 { font-size: 20px; letter-spacing: -.02em; }
+.journey { border: 0; background: none; box-shadow: none; gap: 12px; }
+.journey li + li { border-left: 0; } .journey li + li::before { left: -18px; top: 62px; }
+.journey .jstep, .journey li:first-child .jstep, .journey li:last-child .jstep { padding: 12px 12px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); transition: border-color .16s ease-out, transform .16s ease-out; }
+.journey .jstep:hover { background: var(--surface); border-color: var(--sel); transform: translateY(-3px); }
+.jstep > i, .jstep > b, .jstep > span:not(.jv) { padding: 0 6px; }
+.jv { position: relative; display: grid; place-items: center; width: 100%; height: 138px; margin-bottom: 12px; border-radius: 12px; overflow: hidden; background: radial-gradient(var(--stage-dot) 1px, transparent 1.4px) 0 0 / 14px 14px, linear-gradient(var(--stage-2), var(--stage)); }
+.jstep.is-here .jv { box-shadow: inset 0 0 0 2px var(--sel); }
+.jc { position: relative; display: block; height: 104px; aspect-ratio: var(--car); border-radius: var(--crad); background: var(--surface-3) center / cover no-repeat; box-shadow: 0 1px 2px rgba(20,16,6,.2), 0 10px 18px -10px rgba(20,16,6,.55); transition: transform .3s cubic-bezier(.2,.7,.2,1); }
+.jv--format .jc { height: 88px; margin: 0 26px 14px 0; background: var(--surface); box-shadow: none; outline: 1.5px solid var(--stage-ink); outline-offset: -1.5px; }
+.jdim { position: absolute; font: 600 10.5px/1 var(--font-body); font-style: normal; color: var(--stage-ink); white-space: nowrap; }
+.jdim--w { left: 0; right: 0; bottom: -18px; text-align: center; } .jdim--h { left: calc(100% + 7px); top: 50%; transform: translateY(-50%); }
+.jv--image .jc::after { content: ""; position: absolute; inset: -8px; border: 1.5px dashed var(--stage-muted); border-radius: 8px; opacity: .8; }
+.jstep:hover .jv--image .jc { transform: scale(1.06); }
+.jv--fx .jc { overflow: hidden; }
+.jv--fx .jc::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 30%, rgba(255,70,130,.42) 41%, rgba(255,214,90,.5) 48%, rgba(90,255,200,.42) 55%, rgba(100,150,255,.45) 62%, transparent 72%) 30% 0 / 260% 100% no-repeat; mix-blend-mode: screen; transition: background-position 1s cubic-bezier(.2,.7,.2,1); }
+.jstep:hover .jv--fx .jc::after { background-position: 74% 0; }
+.jv--serie .jc { position: absolute; height: 92px; }
+.jv--serie .jc:nth-child(1) { transform: translateX(-46%) rotate(-10deg); } .jv--serie .jc:nth-child(2) { transform: translateX(46%) rotate(10deg); } .jv--serie .jc:nth-child(3) { transform: translateY(-3px); }
+.jstep:hover .jv--serie .jc:nth-child(1) { transform: translateX(-62%) rotate(-14deg); } .jstep:hover .jv--serie .jc:nth-child(2) { transform: translateX(62%) rotate(14deg); }
+.jprint { position: relative; padding: 13px; --m: var(--stage-ink); background:
+  linear-gradient(var(--m), var(--m)) 13px 0 / 1px 8px no-repeat, linear-gradient(var(--m), var(--m)) calc(100% - 13px) 0 / 1px 8px no-repeat,
+  linear-gradient(var(--m), var(--m)) 13px 100% / 1px 8px no-repeat, linear-gradient(var(--m), var(--m)) calc(100% - 13px) 100% / 1px 8px no-repeat,
+  linear-gradient(var(--m), var(--m)) 0 13px / 8px 1px no-repeat, linear-gradient(var(--m), var(--m)) 0 calc(100% - 13px) / 8px 1px no-repeat,
+  linear-gradient(var(--m), var(--m)) 100% 13px / 8px 1px no-repeat, linear-gradient(var(--m), var(--m)) 100% calc(100% - 13px) / 8px 1px no-repeat; }
+.jprint .jc { height: 88px; box-shadow: none; outline: 1px dashed var(--err); outline-offset: 4px; }
+.show { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.show .tool { min-height: 216px; padding: 24px; grid-template-columns: minmax(0, 1fr) 42%; gap: 16px; }
+.show .tool b { font-size: 19px; } .show .tool__txt { display: grid; gap: 6px; align-content: start; justify-items: start; }
+.tool--mock { background: linear-gradient(135deg, var(--surface) 40%, var(--sel-soft)); }
+.tool--mock .tool__txt { color: var(--ink); } .tool--mock .tool__txt > span { color: var(--muted); }
+.tool--mock em { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; font-style: normal; font-size: 13px; font-weight: 600; color: var(--sel-ink); }
+.tool__slab { position: relative; display: grid; place-items: center; align-self: stretch; justify-self: stretch; perspective: 700px; }
+.slab { position: relative; display: grid; justify-items: center; gap: 7px; padding: 9px 9px 11px; border-radius: 9px; background: linear-gradient(140deg, rgba(255,255,255,.75), rgba(255,255,255,.28) 45%, rgba(255,255,255,.55)); border: 1px solid rgba(255,255,255,.9); box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 20px 30px -16px rgba(20,16,6,.55), 0 0 0 1px rgba(20,16,6,.12); transform: rotateY(-18deg) rotateX(5deg) rotate(3deg); transition: transform .4s cubic-bezier(.2,.7,.2,1); }
+.tool--mock:hover .slab { transform: rotateY(-6deg) rotateX(2deg) rotate(0deg); }
+.slab__lab { display: block; width: 100%; height: 20px; border-radius: 3px; background: linear-gradient(90deg, #17150f 0 30%, #e2590a 30% 34%, #f4f1ea 34%); text-decoration: none; }
+.slab .jc { height: 132px; box-shadow: 0 0 0 1px rgba(20,16,6,.2); }
+.show .tool--studio .tool__fan i { bottom: -44%; width: 50%; margin-left: -25%; }
+.extras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.extras .tool { min-height: 0; grid-template-columns: 40px minmax(0, 1fr); column-gap: 14px; row-gap: 3px; padding: 16px 18px; align-items: center; }
+.extras .tool svg.ic:not(.s) { grid-row: 1 / span 2; margin: 0; align-self: start; }
+@media (min-width: 761px) { .nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: none; align-content: start; } .rail__foot { margin-top: 0; flex: none; } }
+@media (min-width: 761px) and (max-height: 840px) { .nav button { padding-block: 6px 5px; } .nav__flow { margin-block: 3px; } }
+@media (max-width: 1080px) { .journey { gap: 10px; } .journey li + li { border-top: 0; } .journey .jstep, .journey li:first-child .jstep, .journey li:last-child .jstep { grid-template-columns: 112px minmax(0, 1fr); column-gap: 14px; padding: 10px 14px 10px 10px; align-content: center; } .jv { grid-row: 1 / span 3; height: 112px; margin: 0; } .jv .jc { transform-origin: center; scale: .8; } .jstep > i { align-self: end; } .show { grid-template-columns: minmax(0, 1fr); } .extras { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 520px) { .show .tool { grid-template-columns: minmax(0, 1fr) 36%; padding: 18px; min-height: 0; } .slab .jc { height: 96px; } .tool--studio .tool__fan { display: block; } .show .tool--studio { grid-template-columns: minmax(0, 1fr) 36%; } }
+@media (prefers-reduced-motion: reduce) { .jc, .jv--fx .jc::after, .slab { transition: none; } }
 </style>
 <script>(function(){try{var d=document.documentElement,t=localStorage.getItem("layrys-theme")||"light",f=localStorage.getItem("layrys-font")||"";if(t==="dark"||t==="light")d.dataset.theme=t;if(f)d.dataset.font=f;if(localStorage.getItem("layrys-rail")==="min")d.dataset.rail="min";}catch(e){}})();</script>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-atelier" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M12 8.5l1.1 2.4 2.4 1.1-2.4 1.1L12 15.5l-1.1-2.4L8.5 12l2.4-1.1z"/></symbol><symbol id="i-serie" viewBox="0 0 24 24"><rect x="8" y="3" width="12" height="16" rx="2"/><path d="M5 7v12a2 2 0 0 0 2 2h8"/></symbol><symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8.5L20 17M8 15.5L20 7"/></symbol><symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></symbol><symbol id="i-undo" viewBox="0 0 24 24"><path d="M8 5L3 10l5 5"/><path d="M3 10h11a6 6 0 0 1 0 12h-3"/></symbol><symbol id="i-redo" viewBox="0 0 24 24"><path d="M16 5l5 5-5 5"/><path d="M21 10H10a6 6 0 0 0 0 12h3"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1 1-1.1 1.8"/><path d="M12 17h.01"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></symbol><symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V5M7 9.5l5-5 5 5M5 20h14"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol><symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M4 4l16 16M10 6a9 9 0 0 1 2-.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3 3.8M6.5 7.5A17 17 0 0 0 2.5 12S6 18.5 12 18.5a9 9 0 0 0 3.5-.7"/></symbol><symbol id="i-up" viewBox="0 0 24 24"><path d="M6 14l6-6 6 6"/></symbol><symbol id="i-down" viewBox="0 0 24 24"><path d="M6 10l6 6 6-6"/></symbol><symbol id="i-left" viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6"/></symbol><symbol id="i-right" viewBox="0 0 24 24"><path d="M10 6l6 6-6 6"/></symbol><symbol id="i-flip" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/></symbol><symbol id="i-zoomin" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3M11 8.5v5M8.5 11h5"/></symbol><symbol id="i-zoomout" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3M8.5 11h5"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3"/></symbol><symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><path d="M8.5 5.5v13M15.5 5.5v13"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17.5l5-5 4 4 2.5-2.5 4.5 4.5"/></symbol><symbol id="i-hand" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></symbol><symbol id="i-compare" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 3v18"/></symbol><symbol id="i-proof" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol><symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></symbol><symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5M3 17l9 5 9-5"/></symbol><symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-swatch" viewBox="0 0 24 24"><path d="M5 4h6v13a3 3 0 0 1-6 0z"/><path d="M11 7.5l4.2-2.4 3 5.2L11 14.5"/><path d="M12.5 17.5H20v-6h-2.2"/><path d="M8 17h.01"/></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></symbol><symbol id="i-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></symbol><symbol id="i-rotate" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/></symbol><symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"/></symbol><symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.9 2-2 0-1.4 1-2 2.2-2H18a3 3 0 0 0 3-3c0-6-4-9-9-9z"/><path d="M7.5 12h.01M9.5 7.5h.01M14.5 7h.01"/></symbol><symbol id="i-brush" viewBox="0 0 24 24"><path d="M14 4l6 6-8 8H6v-6z"/><path d="M6 18l-2.5 2.5"/></symbol><symbol id="i-wand" viewBox="0 0 24 24"><path d="M5 19L16 8M14 6l4 4"/><path d="M18 3v3M16.5 4.5h3M6 5v2M5 6h2"/></symbol><symbol id="i-rect" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1" stroke-dasharray="3 2.5"/></symbol><symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M3 7h3.5c3 0 4.5 2 6 5s3 5 6 5H21M21 17l-3-3M21 17l-3 3M3 17h3.5c1.4 0 2.5-.5 3.4-1.300M21 7h-2.500c-1.400 0-2.500.5-3.400 1.300M21 7l-3-3M21 7l-3 3"/></symbol><symbol id="i-card" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="2"/></symbol><symbol id="i-fan" viewBox="0 0 24 24"><rect x="9.5" y="4" width="8" height="12" rx="1.5" transform="rotate(16 13.5 18)"/><rect x="8" y="4" width="8" height="12" rx="1.5"/><rect x="6.500" y="4" width="8" height="12" rx="1.5" transform="rotate(-16 10.5 18)"/></symbol><symbol id="i-row" viewBox="0 0 24 24"><rect x="2.5" y="6" width="5.5" height="12" rx="1"/><rect x="9.25" y="6" width="5.5" height="12" rx="1"/><rect x="16" y="6" width="5.5" height="12" rx="1"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="3" width="4.600" height="5.400" rx=".8"/><rect x="9.700" y="3" width="4.600" height="5.400" rx=".8"/><rect x="15.400" y="3" width="4.600" height="5.400" rx=".8"/><rect x="4" y="9.300" width="4.600" height="5.400" rx=".8"/><rect x="9.700" y="9.300" width="4.600" height="5.400" rx=".8"/><rect x="15.400" y="9.300" width="4.600" height="5.400" rx=".8"/><rect x="4" y="15.600" width="4.600" height="5.400" rx=".8"/><rect x="9.700" y="15.600" width="4.600" height="5.400" rx=".8"/><rect x="15.400" y="15.600" width="4.600" height="5.400" rx=".8"/></symbol><symbol id="i-case" viewBox="0 0 24 24"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="7.500" y="5.500" width="9" height="13" rx="1"/></symbol><symbol id="i-slab" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><rect x="7.500" y="9" width="9" height="11" rx="1"/><path d="M8 5.500h8"/></symbol><symbol id="i-block" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1.5"/><rect x="8.500" y="7" width="7" height="10" rx="1"/><path d="M5.500 6.500h.01M18.500 6.500h.01M5.500 17.500h.01M18.500 17.500h.01" stroke-width="2.200"/></symbol><symbol id="i-frame" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><rect x="6" y="6" width="12" height="12"/><rect x="9" y="8" width="6" height="8" rx="1"/></symbol><symbol id="i-booster" viewBox="0 0 24 24"><path d="M7 5h10v14H7z"/><path d="M7 5l1-2h8l1 2M7 19l1 2h8l1-2"/></symbol><symbol id="i-mat" viewBox="0 0 24 24"><rect x="2.500" y="6" width="19" height="12" rx="2"/><rect x="6" y="9" width="4" height="6" rx=".8"/><path d="M13 12h5"/></symbol><symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.500"/><circle cx="12" cy="12" r="5.200"/><path d="M12 9.800v4.400M10.200 12h3.600"/></symbol><symbol id="i-boxo" viewBox="0 0 24 24"><path d="M3 9l2-4h14l2 4v10H3z"/><path d="M3 9h18M9 13h6"/></symbol><symbol id="i-tin" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="3"/><path d="M3 11h18M9 5h6"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/><path d="M9 8h6"/></symbol><symbol id="i-pile" viewBox="0 0 24 24"><path d="M4 16l8 3 8-3M4 13l8 3 8-3"/><path d="M12 5l8 3-8 3-8-3z"/></symbol></svg>
@@ -802,14 +886,16 @@ select.mini { min-height: 28px; padding: 3px 26px 3px 9px; font-size: 12.5px; fo
       <button type="button" data-page="accueil" aria-pressed="false"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>Accueil</span></button>
       <p class="nav__cap">Parcours</p>
       <div class="nav__flow" role="group" aria-label="Les étapes, dans l'ordre">
-        <button type="button" data-page="image" aria-pressed="false" title="Étape 1 : choisir et cadrer l'image"><svg class="ic" aria-hidden="true"><use href="#i-image"/></svg><span>Illustration</span><small>Choisir et cadrer l'image</small></button>
-        <button type="button" data-page="atelier" aria-pressed="true" title="Étape 2 : effets d'impression et leurs zones"><svg class="ic" aria-hidden="true"><use href="#i-atelier"/></svg><span>Finitions</span><small>Effets d'impression et zones</small></button>
-        <button type="button" data-page="serie" aria-pressed="false" title="Étape 3 : les cartes de la série"><svg class="ic" aria-hidden="true"><use href="#i-serie"/></svg><span>Série</span><small>Cartes, raretés, tirages</small></button>
-        <button type="button" data-page="maquettes" aria-pressed="false" title="Étape 4 : la carte en volume"><svg class="ic" aria-hidden="true"><use href="#i-cube"/></svg><span>Maquettes</span><small>La carte en volume</small></button>
+        <button type="button" data-page="format" aria-pressed="false" title="Étape 1 : format de la carte et carton"><svg class="ic" aria-hidden="true"><use href="#i-card"/></svg><span>Format</span><small>Taille de la carte et carton</small></button>
+        <button type="button" data-page="image" aria-pressed="false" title="Étape 2 : choisir et cadrer l'image"><svg class="ic" aria-hidden="true"><use href="#i-image"/></svg><span>Illustration</span><small>Choisir et cadrer l'image</small></button>
+        <button type="button" data-page="atelier" aria-pressed="true" title="Étape 3 : effets d'impression et leurs zones"><svg class="ic" aria-hidden="true"><use href="#i-atelier"/></svg><span>Finitions</span><small>Effets d'impression et zones</small></button>
+        <button type="button" data-page="serie" aria-pressed="false" title="Étape 4 : les cartes de la série"><svg class="ic" aria-hidden="true"><use href="#i-serie"/></svg><span>Série</span><small>Cartes, raretés, tirages</small></button>
         <button type="button" data-page="plans" aria-pressed="false" title="Étape 5 : fichiers pour l'imprimeur"><svg class="ic" aria-hidden="true"><use href="#i-scissors"/></svg><span>Impression</span><small>Fichiers pour l'imprimeur</small></button>
       </div>
-      <p class="nav__cap">Outils</p>
+      <p class="nav__cap">Présenter</p>
+      <button type="button" data-page="maquettes" aria-pressed="false" title="La carte en volume : booster, slab, cadre"><svg class="ic" aria-hidden="true"><use href="#i-cube"/></svg><span>Maquettes</span><small>La carte en volume</small></button>
       <button type="button" data-page="studio" aria-pressed="false" title="Filmer la carte : mouvements, décors, effets, vidéo"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg><span>Studio</span><small>Filmer tes cartes</small></button>
+      <p class="nav__cap">En plus</p>
       <button type="button" data-page="creation" aria-pressed="false" title="Option : ajouter un cadre, un nom, des textes"><svg class="ic" aria-hidden="true"><use href="#i-edit"/></svg><span>Cadre et texte</span><small>En option</small></button>
       <button type="button" id="tourBtn" data-tour title="Guide pas à pas : fabrique une carte avec moi"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg><span>Guide</span><small>Pas à pas, avec toi</small></button>
     </nav>
@@ -849,27 +935,6 @@ select.mini { min-height: 28px; padding: 3px 26px 3px 9px; font-size: 12.5px; fo
     <button type="button" class="btn small" id="pageNext" hidden><span id="pageNextT">Étape suivante</span> <svg class="ic s" aria-hidden="true"><use href="#i-right"/></svg></button>
     <div class="top__right">
       <span id="saveState">Enregistré localement</span>
-      <div class="menu"><button type="button" class="spec" id="formatBtn" title="Format de la carte"><span class="glyph"></span><span id="formatVal">63 × 88 mm</span></button>
-        <div class="pop" id="formatPop" hidden>
-          <input type="search" id="fmtFilter" placeholder="Pokémon, Yu-Gi-Oh!, Lorcana, tarot…">
-          <div class="pills" id="fmtGroups"></div>
-          <div class="formats" id="formats"></div>
-          <div id="fmtCustom" hidden class="kv"></div>
-          <p class="note" id="fmtNote"></p>
-        </div>
-      </div>
-      <div class="menu"><button type="button" class="spec" id="stockBtn" title="Carton, laminage et tranche">Carton <small>0,33 mm</small></button>
-        <div class="pop" id="stockPop" hidden>
-          <div class="kv">
-            <label class="field">Carton<select id="core"><option value="black core">Black core 300 g (0,33 mm)</option><option value="blue core">Blue core 300 g (0,33 mm)</option><option value="white core">White core 300 g (0,33 mm)</option></select></label>
-            <label class="field">Teinte du papier<select id="stock"><option value="#f6f3ec">Blanc</option><option value="#0b0b0e">Noir</option><option value="#c9a97a">Kraft</option><option value="#e9e4d6">Ivoire</option></select></label>
-            <label class="field">Laminage<select id="coatKind"><option value="gloss">Brillant</option><option value="satin">Satiné</option><option value="matte">Mat / soft touch</option><option value="none">Sans vernis</option></select></label>
-            <label class="field">Tranche<select id="edge"><option value="">Non teintée</option><option value="gold">Dorée</option><option value="silver">Argentée</option><option value="black">Noire</option><option value="red">Rouge</option></select></label>
-          </div>
-          <div class="slider small"><span>Brillance du laminage</span><output id="o-coat">60%</output><input type="range" id="coat" min="0" max="150" value="60"></div>
-          <p class="note">Épaisseur fixée à 0,33 mm, le standard des cartes à jouer. Elle est reportée sur la tranche de la carte et dans la fiche technique.</p>
-        </div>
-      </div>
       <span class="sep"></span>
       <button type="button" class="btn icon ghost" id="themeBtn" title="Passer en mode sombre" aria-label="Passer en mode sombre"><svg class="ic" aria-hidden="true"><use href="#i-moon"/></svg></button>
       <button type="button" class="btn icon ghost" id="undo" title="Annuler (Ctrl Z)" aria-label="Annuler"><svg class="ic" aria-hidden="true"><use href="#i-undo"/></svg></button>
@@ -896,11 +961,11 @@ select.mini { min-height: 28px; padding: 3px 26px 3px 9px; font-size: 12.5px; fo
     <div class="home">
       <div class="hero" id="hero">
         <div class="hero__txt">
-          <p class="hero__eye">Série en cours</p>
-          <h2 class="hero__title" id="homeTitle">Ma série</h2>
-          <p class="hero__meta" id="homeState"></p>
+          <p class="hero__eye">Série en cours : <b id="homeTitle">Ma série</b><span id="homeState"></span></p>
+          <h2 class="hero__title">Tes cartes, telles qu'elles sortiront de l'imprimerie.</h2>
+          <p class="hero__lead">Pose de l'holo, de la dorure, du vernis ou du relief, incline la carte pour voir le reflet, puis envoie des fichiers propres à l'imprimeur.</p>
           <div class="hero__acts">
-            <button type="button" class="btn primary big" id="homeGo" data-go="image"><span id="homeGoT">Commencer par l'illustration</span> <svg class="ic s" aria-hidden="true"><use href="#i-right"/></svg></button>
+            <button type="button" class="btn primary big" id="homeGo" data-go="format"><span id="homeGoT">Commencer : choisir le format</span> <svg class="ic s" aria-hidden="true"><use href="#i-right"/></svg></button>
             <button type="button" class="btn big hero__alt" data-tour><svg class="ic s" aria-hidden="true"><use href="#i-book"/></svg> Suivre le guide pas à pas</button>
           </div>
           <p class="hero__hint">Passe le pointeur sur la carte : ses finitions réagissent à la lumière.</p>
@@ -913,32 +978,73 @@ select.mini { min-height: 28px; padding: 3px 26px 3px 9px; font-size: 12.5px; fo
           </div>
         </div>
       </div>
-      <div class="home__sec"><h3>Le parcours</h3><p>Cinq étapes, de l'image au fichier. Tu peux revenir sur chacune à tout moment.</p></div>
+      <div class="home__sec"><h3>Le parcours</h3><p>Cinq étapes, de la feuille blanche au fichier pour l'imprimeur. Tu peux revenir sur chacune à tout moment.</p></div>
       <ol class="journey">
-        <li><button type="button" class="jstep" data-go="image"><svg class="ic" aria-hidden="true"><use href="#i-image"/></svg><i>Étape 1</i><b>Illustration</b><span>Importe ton image ou prends un exemple, puis cadre-la sur la carte.</span></button></li>
-        <li><button type="button" class="jstep" data-go="atelier"><svg class="ic" aria-hidden="true"><use href="#i-atelier"/></svg><i>Étape 2</i><b>Finitions</b><span>Holo, dorure, vernis, relief : règle les effets et leurs zones.</span></button></li>
-        <li><button type="button" class="jstep" data-go="serie"><svg class="ic" aria-hidden="true"><use href="#i-serie"/></svg><i>Étape 3</i><b>Série</b><span>Toutes les cartes du set, leurs raretés et les tirages.</span></button></li>
-        <li><button type="button" class="jstep" data-go="maquettes"><svg class="ic" aria-hidden="true"><use href="#i-cube"/></svg><i>Étape 4</i><b>Maquettes</b><span>Booster, display, slab, cadre : ta carte en volume.</span></button></li>
-        <li><button type="button" class="jstep" data-go="plans"><svg class="ic" aria-hidden="true"><use href="#i-scissors"/></svg><i>Étape 5</i><b>Impression</b><span>Plans de découpe, contrôle et fichiers pour l'imprimeur.</span></button></li>
+        <li><button type="button" class="jstep" data-go="format"><span class="jv jv--format" aria-hidden="true"><span class="jc"><em class="jdim jdim--w" id="jvW">63 mm</em><em class="jdim jdim--h" id="jvH">88 mm</em></span></span><i>Étape 1</i><b>Format</b><span>Choisis la taille de la carte et son carton. Tout le reste s'y adapte.</span></button></li>
+        <li><button type="button" class="jstep" data-go="image"><span class="jv jv--image" aria-hidden="true"><span class="jc jthumb"></span></span><i>Étape 2</i><b>Illustration</b><span>Importe ton image, cadre-la, compare le recto et le verso.</span></button></li>
+        <li><button type="button" class="jstep" data-go="atelier"><span class="jv jv--fx" aria-hidden="true"><span class="jc jthumb"></span></span><i>Étape 3</i><b>Finitions</b><span>Holo, dorure, vernis, relief : pose les effets et leurs zones.</span></button></li>
+        <li><button type="button" class="jstep" data-go="serie"><span class="jv jv--serie" aria-hidden="true"><span class="jc jthumb" data-k="1"></span><span class="jc jthumb" data-k="2"></span><span class="jc jthumb"></span></span><i>Étape 4</i><b>Série</b><span>Décline tes cartes, donne-leur une rareté, règle les tirages.</span></button></li>
+        <li><button type="button" class="jstep" data-go="plans"><span class="jv jv--print" aria-hidden="true"><span class="jprint"><span class="jc jthumb"></span></span></span><i>Étape 5</i><b>Impression</b><span>Plans de découpe, contrôle et fichiers pour l'imprimeur.</span></button></li>
       </ol>
-      <div class="home__sec"><h3>Outils</h3><p>En dehors du parcours, quand tu en as besoin.</p></div>
-      <div class="tools">
+      <div class="home__sec"><h3>Présenter</h3><p>Montre tes cartes avant même de les imprimer.</p></div>
+      <div class="show">
+        <button type="button" class="tool tool--mock" data-go="maquettes"><span class="tool__txt"><svg class="ic" aria-hidden="true"><use href="#i-cube"/></svg><b>Maquettes 3D</b><span>Booster, display, slab gradé, cadre, classeur : ta carte en volume, à faire tourner à la souris.</span><em>Ouvrir les maquettes <svg class="ic s" aria-hidden="true"><use href="#i-right"/></svg></em></span><span class="tool__slab" aria-hidden="true"><span class="slab"><span class="slab__lab"></span><span class="jc jthumb"></span></span></span></button>
         <button type="button" class="tool tool--studio" data-go="studio"><span class="tool__txt"><svg class="ic" aria-hidden="true"><use href="#i-camera"/></svg><b>Studio</b><span>Filme tes cartes : mouvements, deck, décors et effets, puis une vidéo prête à partager.</span><em>Ouvrir le Studio <svg class="ic s" aria-hidden="true"><use href="#i-right"/></svg></em></span><span class="tool__fan" id="homeFan" aria-hidden="true"><i></i><i></i><i></i></span></button>
-        <button type="button" class="tool" data-go="creation"><svg class="ic" aria-hidden="true"><use href="#i-edit"/></svg><b>Cadre et texte</b><span>En option : ajoute une bordure, un nom ou des textes si ton illustration n'en a pas déjà.</span></button>
-        <button type="button" class="tool" data-go="guide"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg><b>Comprendre une carte</b><span>Zones, marges, fond perdu : le vocabulaire de l'imprimeur, expliqué simplement.</span></button>
+      </div>
+      <div class="home__sec"><h3>En plus</h3></div>
+      <div class="extras">
+        <button type="button" class="tool" data-go="creation"><svg class="ic" aria-hidden="true"><use href="#i-edit"/></svg><b>Cadre et texte</b><span>En option : une bordure, un nom ou des textes si ton illustration n'en a pas déjà.</span></button>
+        <button type="button" class="tool" data-go="guide"><svg class="ic" aria-hidden="true"><use href="#i-help"/></svg><b>Comprendre une carte</b><span>Zones, marges, fond perdu : le vocabulaire de l'imprimeur, expliqué simplement.</span></button>
+        <button type="button" class="tool" data-tour><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg><b>Guide pas à pas</b><span>Je t'accompagne du format au fichier d'impression, pendant que tu manipules.</span></button>
       </div>
       <div class="home__sec home__sec--row"><h3>Tes cartes</h3><button type="button" class="link-btn" data-go="serie">Ouvrir la série <svg class="ic s" aria-hidden="true"><use href="#i-right"/></svg></button></div>
       <div class="hstrip" id="homeCards"></div>
     </div>
   </section>
 
+  <!-- ===== Format ===== -->
+  <section class="page" id="page-format" hidden>
+    <div class="work">
+      <div class="work__main">
+        <div class="panel fmtmain">
+          <div class="fmtmain__head"><h2 id="fmtName">Format</h2><span id="formatVal">63 × 88 mm</span></div>
+          <div class="fmtviz" id="fmtViz"></div>
+          <div class="fmtlegend"><span class="is-bleed"><i></i>Fond perdu : l'image déborde jusque-là</span><span><i></i>Coupe : le bord de la carte finie</span><span class="is-safe"><i></i>Zone sûre : textes et éléments importants</span></div>
+          <dl class="fmtfacts" id="fmtFacts"></dl>
+          <p class="fmtstock" id="stockBtn">Carton <small>0,33 mm</small></p>
+        </div>
+      </div>
+      <aside class="panel insp" id="fmtSide" aria-label="Format et carton">
+        <div class="tabpane">
+          <div><h2>Format de la carte</h2><p class="note">Choisis le jeu ou le format le plus proche du tien. Le cadrage, les plans de découpe et les maquettes s'y adaptent.</p></div>
+          <input type="search" id="fmtFilter" placeholder="Pokémon, Yu-Gi-Oh!, Lorcana, tarot…">
+          <div class="pills" id="fmtGroups"></div>
+          <div class="formats" id="formats"></div>
+          <div id="fmtCustom" hidden class="kv"></div>
+          <p class="note" id="fmtNote"></p>
+          <div><h2>Carton et laminage</h2><p class="note">Le carton, sa teinte, le laminage et la tranche se voient sur la carte et sont reportés dans la fiche pour l'imprimeur.</p></div>
+          <div class="kv">
+            <label class="field">Carton<select id="core"><option value="black core">Black core 300 g (0,33 mm)</option><option value="blue core">Blue core 300 g (0,33 mm)</option><option value="white core">White core 300 g (0,33 mm)</option></select></label>
+            <label class="field">Teinte du papier<select id="stock"><option value="#f6f3ec">Blanc</option><option value="#0b0b0e">Noir</option><option value="#c9a97a">Kraft</option><option value="#e9e4d6">Ivoire</option></select></label>
+            <label class="field">Laminage<select id="coatKind"><option value="gloss">Brillant</option><option value="satin">Satiné</option><option value="matte">Mat / soft touch</option><option value="none">Sans vernis</option></select></label>
+            <label class="field">Tranche<select id="edge"><option value="">Non teintée</option><option value="gold">Dorée</option><option value="silver">Argentée</option><option value="black">Noire</option><option value="red">Rouge</option></select></label>
+          </div>
+          <div class="slider small"><span>Brillance du laminage</span><output id="o-coat">60%</output><input type="range" id="coat" min="0" max="150" value="60"></div>
+          <p class="note">Épaisseur fixée à 0,33 mm, le standard des cartes à jouer. Elle est reportée sur la tranche de la carte et dans la fiche technique.</p>
+          <div class="row"><button type="button" class="btn primary" data-go="image">Étape suivante : illustration <svg class="ic s" aria-hidden="true"><use href="#i-right"/></svg></button></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
   <!-- ===== Illustration ===== -->
   <section class="page" id="page-image" hidden>
     <div class="work">
-      <div class="work__main"><div id="imageStageHost"></div></div>
+      <div class="work__main"><div id="imageStageHost"><div class="panel split" id="splitPanel" hidden><div class="stagebar"><b id="splitName">Verso</b><span class="spacer"></span><button type="button" class="btn small" id="splitSwap" title="Passe sur cette face pour la modifier"><svg class="ic s" aria-hidden="true"><use href="#i-flip"/></svg> Travailler sur cette face</button></div><div class="split__stage"><canvas id="splitCv" width="640" height="894" aria-label="L'autre face de la carte"></canvas></div></div></div></div>
       <aside class="panel insp" id="imgSide" aria-label="Choisir l'illustration">
         <div class="tabpane">
           <div><h2>Choisir l'illustration</h2><p class="note" id="crFormat"></p></div>
+          <div class="seg" id="splitSeg" role="group" aria-label="Affichage de la carte"><button type="button" data-split="0" aria-pressed="true">Une face</button><button type="button" data-split="1" aria-pressed="false" title="Affiche le recto et le verso en même temps"><svg class="ic s" aria-hidden="true"><use href="#i-compare"/></svg> Recto et verso côte à côte</button></div>
           <div class="notice" id="crNoArt" hidden><svg class="ic s" aria-hidden="true"><use href="#i-help"/></svg><span>Aucune illustration sur cette carte pour l'instant. Importe la tienne ou clique sur un exemple.</span></div>
           <div class="row"><label class="btn" for="file"><svg class="ic s" aria-hidden="true"><use href="#i-upload"/></svg> Importer mon image</label><button type="button" class="btn" id="crLib"><svg class="ic s" aria-hidden="true"><use href="#i-grid"/></svg> Ouvrir la bibliothèque</button></div>
           <div class="imggrid" id="imgGrid"></div>
@@ -3933,7 +4039,7 @@ ${inner}
     card.style.setProperty("--card-radius", `${round(rad, 2)}% / ${round(rad * a, 2)}%`);
     for (const doc of allDocs()) for (const l of doc.layers) if (l.kind !== "image") regen(l);
     for (const c of project.cards) { c.thumb = ""; c.pre = null; }
-    $("#formatVal").textContent = `${d.w} × ${d.h} mm`; $("#dims").textContent = `${d.w} × ${d.h} mm / ${ui.face === "back" ? "verso" : "recto"} / 0,33 mm`;
+    $("#formatVal").textContent = `${d.w} × ${d.h} mm`; fmtViz(); $("#dims").textContent = `${d.w} × ${d.h} mm / ${ui.face === "back" ? "verso" : "recto"} / 0,33 mm`;
     resize(); invalidateThumbs(); refreshLayers(); renderSeries(true); ui.dirty = true;
   }
   function drawMarks(ppm) {
@@ -3960,7 +4066,7 @@ ${inner}
   document.addEventListener("input", () => { ui.dirty = true; }); document.addEventListener("change", () => { ui.dirty = true; }); document.addEventListener("click", () => { ui.dirty = true; });
 
   /* ---- popovers and menus ---- */
-  const POPS = [["#stockBtn", "#stockPop"], ["#formatBtn", "#formatPop"], ["#helpBtn", "#helpPop"], ["#exportBtn", "#exportMenu"], ["#layerBtn", "#layerMenu"], ["#lookBtn", "#lookPop"]];
+  const POPS = [["#helpBtn", "#helpPop"], ["#exportBtn", "#exportMenu"], ["#layerBtn", "#layerMenu"], ["#lookBtn", "#lookPop"]];
   function closeMenus(except) { for (const [, p] of POPS) if (p !== except) $(p).hidden = true; }
   for (const [b, p] of POPS) $(b).addEventListener("click", e => { e.stopPropagation(); const el = $(p); const open = el.hidden; closeMenus(p); el.hidden = !open; if (!el.hidden && p === "#formatPop") $("#fmtFilter").focus(); });
   for (const [, p] of POPS) $(p).addEventListener("click", e => e.stopPropagation());
@@ -4155,13 +4261,13 @@ ${inner}
   $("#flipBtn").addEventListener("click", () => setFace(ui.face === "back" ? "front" : "back"));
 
   /* ---- pages ---- */
-  const PAGE_TEXT = { accueil: ["Accueil", "Choisis par où commencer."], image: ["Illustration", "Choisis l'image de la carte, puis cadre-la."], studio: ["Studio", "Filme ta carte : un mouvement, un décor, des effets, puis la vidéo."], creation: ["Cadre et texte", "Option : ajoute un cadre, un nom ou des textes si ton illustration n'en a pas déjà."], guide: ["Comprendre une carte", "Les bases d'une carte, de l'illustration à l'impression."], atelier: ["Finitions", "Choisis une finition et sa zone. Incline la carte pour examiner le reflet."], serie: ["Série", "Toutes les cartes du set, les raretés et les planches d'imposition."], plans: ["Impression", "Plans de découpe à l'échelle, marges et contrôle avant impression."], maquettes: ["Maquettes", "Manipule tes cartes en volume : blocs acryliques, cadres, slab, boosters."] };
-  const STEPS = ["image", "atelier", "serie", "maquettes", "plans"];
+  const PAGE_TEXT = { accueil: ["Accueil", "Ta série, le parcours et les outils."], format: ["Format", "Choisis la taille de la carte et son carton. Tout le reste s'y adapte."], image: ["Illustration", "Choisis l'image de la carte, puis cadre-la."], studio: ["Studio", "Filme ta carte : un mouvement, un décor, des effets, puis la vidéo."], creation: ["Cadre et texte", "Option : ajoute un cadre, un nom ou des textes si ton illustration n'en a pas déjà."], guide: ["Comprendre une carte", "Les bases d'une carte, de l'illustration à l'impression."], atelier: ["Finitions", "Choisis une finition et sa zone. Incline la carte pour examiner le reflet."], serie: ["Série", "Toutes les cartes du set, les raretés et les planches d'imposition."], plans: ["Impression", "Plans de découpe à l'échelle, marges et contrôle avant impression."], maquettes: ["Maquettes", "Manipule tes cartes en volume : blocs acryliques, cadres, slab, boosters."] };
+  const STEPS = ["format", "image", "atelier", "serie", "plans"];
   function setPage(p) {
     const was = ui.page; ui.page = p; if (STEPS.includes(p)) { try { localStorage.setItem("layrys-step", p); } catch (e) {} } for (const b of $$("[data-page]")) b.setAttribute("aria-pressed", String(b.dataset.page === p));
-    for (const id of ["accueil", "image", "studio", "creation", "guide", "atelier", "serie", "plans", "maquettes"]) $("#page-" + id).hidden = id !== p;
+    for (const id of ["accueil", "format", "image", "studio", "creation", "guide", "atelier", "serie", "plans", "maquettes"]) $("#page-" + id).hidden = id !== p;
     { const sp = $("#stagePanel"); if (p === "image") $("#imageStageHost").append(sp); else if (p === "creation") $("#creationStageHost").append(sp); else if (p === "atelier") $("#atelierStageHost").append(sp); } /* the card follows the page that works on it */
-    if (p === "accueil") renderHome(); if (p === "creation") crSync();
+    if (p === "accueil") renderHome(); if (p === "creation") crSync(); if (p === "format") fmtViz(); if (p === "image") splitSet(ui.split);
     if (was === "studio" && p !== "studio") studioLeave(); if (p === "studio") studioEnter();
     if (p === "image") { ui.imgMove = true; if (ui.view !== 0) { const b0 = $('[data-view="0"]'); if (b0) b0.click(); } renderLib(); imgSync(); } else if (was === "image") { ui.imgMove = false; bench.style.cursor = ""; imgSync(); }
     $("#pageTitle").textContent = PAGE_TEXT[p][0]; $("#pageSub").textContent = PAGE_TEXT[p][1];
@@ -6150,7 +6256,8 @@ ${inner}
   const tourMain = () => { const imgs = project.front.layers.filter(l => l.kind === "image" && l.src); return [...imgs].reverse().find(l => l.visible) || imgs[0] || null; };
   const TOUR = [
     { page: "accueil", title: "Bienvenue dans Layrys", text: "Je te guide pour fabriquer ta première carte, de l'image au fichier d'impression. Tu peux manipuler l'app pendant que je t'explique, et quitter quand tu veux." },
-    { page: "image", target: "#imgGrid", title: "Choisis ton illustration", text: "C'est le point de départ. Clique sur un exemple, ou importe ta propre image avec le bouton au-dessus.", todo: "Clique sur une image",
+    { page: "format", target: "#formats", title: "Choisis le format", text: "Tout part de là : la taille de la carte et son carton. Prends le jeu le plus proche du tien, tu pourras en changer plus tard." },
+    { page: "image", target: "#imgGrid", title: "Choisis ton illustration", text: "C'est l'image de ta carte. Clique sur un exemple, ou importe ta propre image avec le bouton au-dessus.", todo: "Clique sur une image",
       start: s => { const l = tourMain(); s.v = l ? l.src : null; }, done: s => { const l = tourMain(); return !!l && l.src !== s.v; } },
     { page: "image", target: "#card", title: "Cadre l'image", text: "Glisse l'image sur la carte pour la placer. La molette l'agrandit ou la réduit. Elle doit couvrir toute la carte, bords compris.", todo: "Déplace ou redimensionne l'image",
       start: s => { const l = tourMain(); s.v = l ? [l.x, l.y, l.scale].join() : ""; }, done: s => { const l = tourMain(); return !!l && [l.x, l.y, l.scale].join() !== s.v; } },
@@ -6162,8 +6269,8 @@ ${inner}
       start: s => { s.v = false; }, done: s => { if (!s.v) { const a = parseFloat(getComputedStyle(tiltEl).getPropertyValue("--rotate-x")) || 0, b = parseFloat(getComputedStyle(tiltEl).getPropertyValue("--rotate-y")) || 0; if (Math.abs(a) + Math.abs(b) > 2) s.v = true; } return s.v; } },
     { page: "atelier", target: "#stack", title: "Superpose plusieurs finitions", text: "Chaque finition est un calque, avec la vignette de son masque. « Ajouter un masque » en pose une autre par-dessus, par exemple un vernis brillant sur le sujet." },
     { page: "serie", title: "Construis ta série", text: "Ajoute les autres cartes, donne-leur une rareté, décline une même carte en plusieurs versions. Chaque carte garde ses propres finitions." },
-    { page: "maquettes", target: "#mkStage", title: "Vois-la en volume", text: "Booster, slab gradé, cadre, classeur : choisis un support dans la barre du haut, puis fais-le tourner à la souris." },
     { page: "plans", target: "#exportBtn", title: "Prépare l'impression", text: "Cette page réunit le plan de découpe et le contrôle avant impression. Le bouton « Exporter » donne le dossier pour l'imprimeur : visuels, masques de finition, plans." },
+    { page: "maquettes", target: "#mkStage", title: "Vois-la en volume", text: "Booster, slab gradé, cadre, classeur : choisis un support dans la barre du haut, puis fais-le tourner à la souris." },
     { page: "accueil", title: "Tu connais le parcours", text: "Ton travail est enregistré sur cet appareil. Si ton illustration n'a ni cadre ni nom, l'option « Cadre et texte » du menu en ajoute. Tu peux relancer ce guide à tout moment depuis le menu." },
   ];
   const tour = { i: -1, st: {}, timer: 0, el: null };
@@ -6203,7 +6310,7 @@ ${inner}
      the five steps as one connected path, the tools, and the cards of the series. The sidebar shows the same series at its foot.
      State lives on the function (renderHome may be called while the page starts, before this module has run). */
   function homeSt() { return renderHome.st || (renderHome.st = { px: 0.2, py: 0.35, seq: 0, intro: 0, back: "", sig: "", timer: 0, raf: 0 }); }
-  function homeStep() { let s = "image"; try { s = localStorage.getItem("layrys-step") || "image"; } catch (e) {} return STEPS.includes(s) ? s : "image"; }
+  function homeStep() { let s = "format"; try { s = localStorage.getItem("layrys-step") || "format"; } catch (e) {} return STEPS.includes(s) ? s : "format"; }
   const homeSnap = d => { try { return snapshotDoc(d, 320, [0.35, 0.3], [0, 0]); } catch (e) { return ""; } };
   /* the current card, drawn by the card renderer with the light where the pointer is */
   function heroDraw() {
@@ -6226,9 +6333,9 @@ ${inner}
   function renderHome() {
     const H = homeSt(), n = project.cards.length, st = homeStep(), d = fmtDims(), a = aspect(), r = d.r == null ? 3 : d.r;
     $("#homeTitle").textContent = project.title || "Ma série";
-    $("#homeState").textContent = `${n} carte${n > 1 ? "s" : ""} · ${$("#formatVal").textContent} · enregistré sur cet appareil`;
-    $("#homeGo").dataset.go = st; $("#homeGoT").textContent = st === "image" ? "Commencer par l'illustration" : "Reprendre : " + PAGE_TEXT[st][0];
-    for (const b of $$(".jstep")) { const here = b.dataset.go === st && st !== "image"; b.classList.toggle("is-here", here); if (here) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); }
+    $("#homeState").textContent = ` · ${n} carte${n > 1 ? "s" : ""} · ${$("#formatVal").textContent}`;
+    $("#homeGo").dataset.go = st; $("#homeGoT").textContent = st === "format" ? "Commencer : choisir le format" : "Reprendre : " + PAGE_TEXT[st][0];
+    for (const b of $$(".jstep")) { const here = b.dataset.go === st && st !== "format"; b.classList.toggle("is-here", here); if (here) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); }
     const home = $(".home"); home.style.setProperty("--car", a.toFixed(4)); home.style.setProperty("--crad", `${(r / d.w * 100).toFixed(2)}% / ${(r / d.h * 100).toFixed(2)}%`);
     H.back = ""; H.sig = ""; homeFill(); clearInterval(H.timer); H.timer = setInterval(homeFill, 900); heroIntro();
   }
@@ -6242,10 +6349,37 @@ ${inner}
     const sig = cards.map(k => k.id + ":" + (k.thumb ? k.thumb.length : 0) + ":" + k.name).join("|") + "#" + project.cardIndex + "#" + H.back.length; if (sig === H.sig) { railSync(); return; } H.sig = sig;
     const i0 = project.cardIndex, at = j => cards[(i0 + j) % cards.length], bg = (el, u) => { el.style.backgroundImage = u ? `url(${u})` : ""; };
     const mid = $("#heroMid"); mid.hidden = cards.length < 2; if (cards.length > 1) bg(mid, at(1).thumb); bg($("#heroBack"), H.back);
-    $$("#homeFan i").forEach((el, j) => bg(el, at(j).thumb));
+    $$("#homeFan i").forEach((el, j) => bg(el, at(j).thumb)); $$(".jthumb").forEach(el => bg(el, at(+el.dataset.k || 0).thumb));
     const box = $("#homeCards"); box.textContent = "";
     cards.forEach((k, i) => { const b = document.createElement("button"), im = document.createElement("span"), t = document.createElement("span"); b.type = "button"; b.className = "hcard" + (i === i0 ? " is-cur" : ""); b.title = "Ouvrir « " + (k.name || "Carte " + (i + 1)) + " » dans Finitions"; im.className = "hcard__img"; bg(im, k.thumb); t.className = "hcard__t"; t.textContent = k.name || "Carte " + (i + 1); b.append(im, t); b.addEventListener("click", () => { setCard(i); setPage("atelier"); }); box.append(b); });
     railSync();
+  }
+  /* the Format step: the card drawn to scale with its bleed, its cut and its safe zone, and the figures a printer asks for */
+  function fmtViz() {
+    const box = $("#fmtViz"); if (!box) return; const d = fmtDims(), b = project.print.bleed, sf = project.print.safe, r = d.r == null ? 3 : d.r, n = v => String(+(+v).toFixed(1)).replace(".", ","), px = v => Math.round(v / 25.4 * 300);
+    const m = 15, W = d.w + 2 * (b + m), H = d.h + 2 * (b + m), x0 = b + m, y0 = b + m, c = curCard(), th = c && c.thumb && c.thumb.startsWith("data:image/") ? c.thumb : "", yd = y0 + d.h + b + 7, xd = x0 + d.w + b + 7;
+    box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Gabarit de la carte à l'échelle : ${n(d.w)} par ${n(d.h)} millimètres"><defs><clipPath id="fmtClip"><rect x="${x0}" y="${y0}" width="${d.w}" height="${d.h}" rx="${r}"/></clipPath></defs>` +
+      `<rect x="${x0 - b}" y="${y0 - b}" width="${d.w + 2 * b}" height="${d.h + 2 * b}" fill="var(--err)" fill-opacity=".09" stroke="var(--err)" stroke-width=".35" stroke-dasharray="1.6 1.2"/>` +
+      `<rect x="${x0}" y="${y0}" width="${d.w}" height="${d.h}" rx="${r}" fill="var(--surface)"/>` + (th ? `<image href="${th}" x="${x0}" y="${y0}" width="${d.w}" height="${d.h}" preserveAspectRatio="xMidYMid slice" clip-path="url(#fmtClip)" opacity=".92"/>` : "") +
+      `<rect x="${x0}" y="${y0}" width="${d.w}" height="${d.h}" rx="${r}" fill="none" stroke="currentColor" stroke-width=".5"/>` +
+      `<rect x="${x0 + sf}" y="${y0 + sf}" width="${d.w - 2 * sf}" height="${d.h - 2 * sf}" rx="${Math.max(0.5, r - sf * 0.6)}" fill="none" stroke="var(--ok)" stroke-width=".4" stroke-dasharray="1.6 1.2"/>` +
+      `<g stroke="currentColor" stroke-width=".3" fill="none"><path d="M${x0} ${yd}H${x0 + d.w}M${x0} ${yd - 1.6}v3.2M${x0 + d.w} ${yd - 1.6}v3.2M${xd} ${y0}V${y0 + d.h}M${xd - 1.6} ${y0}h3.2M${xd - 1.6} ${y0 + d.h}h3.2"/></g>` +
+      `<text x="${x0 + d.w / 2}" y="${yd + 5.2}" text-anchor="middle">${n(d.w)} mm</text><text x="${xd + 2.4}" y="${y0 + d.h / 2}" text-anchor="middle" transform="rotate(90 ${xd + 2.4} ${y0 + d.h / 2})">${n(d.h)} mm</text></svg>`;
+    $("#fmtName").textContent = project.formatId === "custom" ? "Format personnalisé" : fmt().game;
+    $("#fmtFacts").innerHTML = [["Format fini", `${n(d.w)} × ${n(d.h)} mm`], ["Avec fond perdu", `${n(d.w + 2 * b)} × ${n(d.h + 2 * b)} mm`], ["Zone sûre", `${n(d.w - 2 * sf)} × ${n(d.h - 2 * sf)} mm`], ["Coins arrondis", `rayon ${n(r)} mm`], ["Image à préparer", `${px(d.w + 2 * b)} × ${px(d.h + 2 * b)} px`]].map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join("");
+    $("#jvW").textContent = n(d.w) + " mm"; $("#jvH").textContent = n(d.h) + " mm";
+  }
+  /* Illustration: the other face beside the one being worked on */
+  function splitDraw() {
+    const cv = $("#splitCv"); if (!ui.split || ui.page !== "image" || !T || document.hidden) return; const back = ui.face !== "back"; if (back) { try { ensureBackLayer(); } catch (e) {} }
+    const doc = back ? project.back : project.front, d = fmtDims(), a = aspect(), r = d.r == null ? 3 : d.r, w = 640, hh = Math.round(w / a); thumbCanvas.width = w; thumbCanvas.height = hh;
+    try { T.renderDoc(doc, { pointer: [0.35, 0.7], tilt: [0, 0], aspect: a, intensity: 1, seed: ui.seed, selectedId: null, view: 0 }); } catch (e) { return; }
+    if (cv.width !== w || cv.height !== hh) { cv.width = w; cv.height = hh; } cv.getContext("2d").drawImage(thumbCanvas, 0, 0, w, hh); cv.style.borderRadius = `${(r / d.w * 100).toFixed(2)}% / ${(r / d.h * 100).toFixed(2)}%`; cv.style.aspectRatio = a.toFixed(4);
+    $("#splitName").textContent = back ? "Verso" : "Recto";
+  }
+  function splitSet(on) {
+    ui.split = !!on; try { localStorage.setItem("layrys-split", on ? "1" : ""); } catch (e) {} for (const b of $$("[data-split]")) b.setAttribute("aria-pressed", String((b.dataset.split === "1") === ui.split));
+    $("#splitPanel").hidden = !ui.split; $("#page-image").classList.toggle("is-split", ui.split); resize(); ui.dirty = true; splitDraw();
   }
   /* the series at the foot of the sidebar */
   function railSync() {
@@ -6261,6 +6395,10 @@ ${inner}
     const lab = () => { const min = root.dataset.rail === "min"; tg.title = min ? "Déployer le menu" : "Réduire le menu"; tg.setAttribute("aria-label", tg.title); tg.setAttribute("aria-expanded", String(!min)); };
     tg.addEventListener("click", () => { if (root.dataset.rail === "min") delete root.dataset.rail; else root.dataset.rail = "min"; try { localStorage.setItem(key, root.dataset.rail || ""); } catch (e) {} lab(); resize(); ui.dirty = true; });
     lab(); railSync(); setInterval(railSync, 2500); if (ui.page === "accueil") renderHome();
+    try { ui.split = localStorage.getItem("layrys-split") === "1"; } catch (e) {}
+    for (const b of $$("[data-split]")) b.addEventListener("click", () => splitSet(b.dataset.split === "1"));
+    const swap = () => { setFace(ui.face === "back" ? "front" : "back"); setTimeout(splitDraw, 60); }; $("#splitSwap").addEventListener("click", swap); $("#splitCv").addEventListener("click", swap);
+    setInterval(splitDraw, 500); fmtViz(); if (ui.page === "image") splitSet(ui.split);
   }
 
 })();

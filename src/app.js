@@ -230,7 +230,7 @@
     card.style.setProperty("--card-radius", `${round(rad, 2)}% / ${round(rad * a, 2)}%`);
     for (const doc of allDocs()) for (const l of doc.layers) if (l.kind !== "image") regen(l);
     for (const c of project.cards) { c.thumb = ""; c.pre = null; }
-    $("#formatVal").textContent = `${d.w} × ${d.h} mm`; $("#dims").textContent = `${d.w} × ${d.h} mm / ${ui.face === "back" ? "verso" : "recto"} / 0,33 mm`;
+    $("#formatVal").textContent = `${d.w} × ${d.h} mm`; fmtViz(); $("#dims").textContent = `${d.w} × ${d.h} mm / ${ui.face === "back" ? "verso" : "recto"} / 0,33 mm`;
     resize(); invalidateThumbs(); refreshLayers(); renderSeries(true); ui.dirty = true;
   }
   function drawMarks(ppm) {
@@ -257,7 +257,7 @@
   document.addEventListener("input", () => { ui.dirty = true; }); document.addEventListener("change", () => { ui.dirty = true; }); document.addEventListener("click", () => { ui.dirty = true; });
 
   /* ---- popovers and menus ---- */
-  const POPS = [["#stockBtn", "#stockPop"], ["#formatBtn", "#formatPop"], ["#helpBtn", "#helpPop"], ["#exportBtn", "#exportMenu"], ["#layerBtn", "#layerMenu"], ["#lookBtn", "#lookPop"]];
+  const POPS = [["#helpBtn", "#helpPop"], ["#exportBtn", "#exportMenu"], ["#layerBtn", "#layerMenu"], ["#lookBtn", "#lookPop"]];
   function closeMenus(except) { for (const [, p] of POPS) if (p !== except) $(p).hidden = true; }
   for (const [b, p] of POPS) $(b).addEventListener("click", e => { e.stopPropagation(); const el = $(p); const open = el.hidden; closeMenus(p); el.hidden = !open; if (!el.hidden && p === "#formatPop") $("#fmtFilter").focus(); });
   for (const [, p] of POPS) $(p).addEventListener("click", e => e.stopPropagation());
@@ -452,13 +452,13 @@
   $("#flipBtn").addEventListener("click", () => setFace(ui.face === "back" ? "front" : "back"));
 
   /* ---- pages ---- */
-  const PAGE_TEXT = { accueil: ["Accueil", "Choisis par où commencer."], image: ["Illustration", "Choisis l'image de la carte, puis cadre-la."], studio: ["Studio", "Filme ta carte : un mouvement, un décor, des effets, puis la vidéo."], creation: ["Cadre et texte", "Option : ajoute un cadre, un nom ou des textes si ton illustration n'en a pas déjà."], guide: ["Comprendre une carte", "Les bases d'une carte, de l'illustration à l'impression."], atelier: ["Finitions", "Choisis une finition et sa zone. Incline la carte pour examiner le reflet."], serie: ["Série", "Toutes les cartes du set, les raretés et les planches d'imposition."], plans: ["Impression", "Plans de découpe à l'échelle, marges et contrôle avant impression."], maquettes: ["Maquettes", "Manipule tes cartes en volume : blocs acryliques, cadres, slab, boosters."] };
-  const STEPS = ["image", "atelier", "serie", "maquettes", "plans"];
+  const PAGE_TEXT = { accueil: ["Accueil", "Ta série, le parcours et les outils."], format: ["Format", "Choisis la taille de la carte et son carton. Tout le reste s'y adapte."], image: ["Illustration", "Choisis l'image de la carte, puis cadre-la."], studio: ["Studio", "Filme ta carte : un mouvement, un décor, des effets, puis la vidéo."], creation: ["Cadre et texte", "Option : ajoute un cadre, un nom ou des textes si ton illustration n'en a pas déjà."], guide: ["Comprendre une carte", "Les bases d'une carte, de l'illustration à l'impression."], atelier: ["Finitions", "Choisis une finition et sa zone. Incline la carte pour examiner le reflet."], serie: ["Série", "Toutes les cartes du set, les raretés et les planches d'imposition."], plans: ["Impression", "Plans de découpe à l'échelle, marges et contrôle avant impression."], maquettes: ["Maquettes", "Manipule tes cartes en volume : blocs acryliques, cadres, slab, boosters."] };
+  const STEPS = ["format", "image", "atelier", "serie", "plans"];
   function setPage(p) {
     const was = ui.page; ui.page = p; if (STEPS.includes(p)) { try { localStorage.setItem("layrys-step", p); } catch (e) {} } for (const b of $$("[data-page]")) b.setAttribute("aria-pressed", String(b.dataset.page === p));
-    for (const id of ["accueil", "image", "studio", "creation", "guide", "atelier", "serie", "plans", "maquettes"]) $("#page-" + id).hidden = id !== p;
+    for (const id of ["accueil", "format", "image", "studio", "creation", "guide", "atelier", "serie", "plans", "maquettes"]) $("#page-" + id).hidden = id !== p;
     { const sp = $("#stagePanel"); if (p === "image") $("#imageStageHost").append(sp); else if (p === "creation") $("#creationStageHost").append(sp); else if (p === "atelier") $("#atelierStageHost").append(sp); } /* the card follows the page that works on it */
-    if (p === "accueil") renderHome(); if (p === "creation") crSync();
+    if (p === "accueil") renderHome(); if (p === "creation") crSync(); if (p === "format") fmtViz(); if (p === "image") splitSet(ui.split);
     if (was === "studio" && p !== "studio") studioLeave(); if (p === "studio") studioEnter();
     if (p === "image") { ui.imgMove = true; if (ui.view !== 0) { const b0 = $('[data-view="0"]'); if (b0) b0.click(); } renderLib(); imgSync(); } else if (was === "image") { ui.imgMove = false; bench.style.cursor = ""; imgSync(); }
     $("#pageTitle").textContent = PAGE_TEXT[p][0]; $("#pageSub").textContent = PAGE_TEXT[p][1];
