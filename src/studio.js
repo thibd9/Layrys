@@ -193,10 +193,12 @@
       "precision mediump float; varying float vA; uniform vec3 uCol; void main(){ vec2 q=gl_PointCoord*2.-1.; float r=dot(q,q); gl_FragColor=vec4(uCol*vA*exp(-r*3.2)*(1.-smoothstep(.7,1.,r)),0.); }", "aSeed");
     const grain = prog(flat, "precision mediump float; varying vec2 vUv; uniform float uTime,uAmt; float h21(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }\n" +
       "void main(){ float n=h21(gl_FragCoord.xy+fract(uTime)*vec2(91.7,37.3)); gl_FragColor=vec4(vec3(1.-uAmt*n),1.); }", "aPos");
+    const shade = prog(flat, "precision mediump float; varying vec2 vUv; uniform sampler2D uTex; uniform float uAmt; void main(){ gl_FragColor=vec4(0.,0.,0.,texture2D(uTex,vUv).a*uAmt); }", "aPos");
+    const mm = gl.getExtension("EXT_blend_minmax"), maxEq = mm ? mm.MAX_EXT : 0;
     const quad = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, quad); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5]), gl.STATIC_DRAW);
     const N = 150, seeds = new Float32Array(N * 3); let s = 7; const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; }; for (let i = 0; i < N * 3; i++) seeds[i] = rnd(); const pts = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, pts); gl.bufferData(gl.ARRAY_BUFFER, seeds, gl.STATIC_DRAW);
     const tex = () => { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([20, 18, 16, 255])); return t; };
-    ST.g = { gl, cvs, bg, card, dust, grain, quad, pts, N, tex, faces: new Map(), title: { t: tex(), key: "" }, tick: 0 }; return ST.g;
+    ST.g = { gl, cvs, bg, card, dust, grain, shade, maxEq, shadow: null, quad, pts, N, tex, faces: new Map(), title: { t: tex(), key: "" }, tick: 0 }; return ST.g;
   }
   function stColors() {
     const b = ST_BACKS.find(x => x[0] === ST.back) || ST_BACKS[0]; if (ST.back === "custom") return [stRgb(ST.c1), stRgb(ST.c2)];
@@ -229,6 +231,14 @@
   }
   /* colour of the aura: the rarity of the card when it has one (the two rarest shimmer through the rainbow), the colour of the backdrop otherwise */
   function stAura(ci, fallback) { const c = project.cards[ci], r = c && c.rarity; if (!r || !(r in ST_RARE)) return fallback; const v = ST_RARE[r]; if (v) return v; const h = ST.clock * 0.35 + ci; return [0.6 + 0.4 * Math.sin(h), 0.6 + 0.4 * Math.sin(h + 2.1), 0.6 + 0.4 * Math.sin(h + 4.2)]; }
+  /* the buffer the shadows are gathered in: the size of the picture, with its own depth */
+  function stShadowBuf(g, W, H) {
+    const gl = g.gl; let b = g.shadow; if (b && b.w === W && b.h === H) return b.ok ? b : null; if (b) { gl.deleteFramebuffer(b.fb); gl.deleteTexture(b.tex); gl.deleteRenderbuffer(b.rb); }
+    const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, W, H, 0, gl.RGBA, gl.UNSIGNED_BYTE, null); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    const rb = gl.createRenderbuffer(); gl.bindRenderbuffer(gl.RENDERBUFFER, rb); gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_STENCIL, W, H);
+    const fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0); gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, rb);
+    const ok = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE; gl.bindFramebuffer(gl.FRAMEBUFFER, null); g.shadow = { fb, tex, rb, w: W, h: H, ok }; return ok ? g.shadow : null;
+  }
   function stDraw(t) {
     const g = ST.g; if (!g || !R) return; const gl = g.gl; stResize(); g.tick++; const W = g.cvs.width, H = g.cvs.height, asp = W / H, a = aspect(), fx = ST.fx, amt = ST.fxAmt, sc = stScene(t), insts = sc.inst, L = lightDef(), floorOn = ST.floor !== "none", floorY = ST_FLOOR_Y;
     /* camera: a card is one unit tall; the framing follows the format, the scene and the two camera sliders. A deck on the table is watched from above */
@@ -262,12 +272,6 @@
       /* the floor: a plane that fades into the backdrop, lit by a pool of light under the cards */
       const kind = ST.floor, size = 14, col = kind === "gloss" ? [c2[0] * 0.5 + c1[0] * 0.22, c2[1] * 0.5 + c1[1] * 0.22, c2[2] * 0.5 + c1[2] * 0.22] : kind === "mat" ? [c1[0] * 0.82 + 0.03, c1[1] * 0.82 + 0.03, c1[2] * 0.82 + 0.03] : [c1[0] * 0.7 + 0.02, c1[1] * 0.7 + 0.02, c1[2] * 0.7 + 0.02];
       gl.uniformMatrix4fv(u.uMVP, false, m4.chain(VP, m4.tr(0, floorY, 0), m4.rx(-Math.PI / 2), m4.sc(size, size, 1))); gl.uniform1i(u.uMode, 5); gl.uniform2f(u.uSize, size, size); gl.uniform3fv(u.uCol, lightBg ? [col[0] * 1.02, col[1] * 1.02, col[2] * 1.02] : col); gl.uniform3f(u.uPool, lead[0], -lead[2], fx.spot ? 0.5 : 0.22); { const hy = proj(0, floorY, -30)[1], k = Math.min(1, Math.max(0, Math.abs(hy - 0.12) / 1.55)), e = k * k * (3 - 2 * k); gl.uniform3f(u.uFar, c1[0] + (c2[0] - c1[0]) * e, c1[1] + (c2[1] - c1[1]) * e, c1[2] + (c2[2] - c1[2]) * e); } { const ac = fx.rim ? stAura(insts[0].ci, haloCol) : haloCol, gk = ((fx.rim ? 0.22 : 0) + (fx.halo ? 0.1 : 0)) * amt * (lightBg ? 0.4 : 1) + burst * 0.25; gl.uniform3f(u.uGlow, ac[0] * gk, ac[1] * gk, ac[2] * gk); } /* the floor takes the colour of the halo and of the aura: the light does not stop at the horizon */ gl.uniform1f(u.uFade, kind === "mat" ? 1 : 0); gl.uniform1f(u.uAlpha, kind === "gloss" ? 0.8 : 0.95); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      /* shadows: a wide soft one and a tight contact one under each card or pile, lighter as the card rises */
-      if (fx.shadow) { const done = []; for (const it of far) { const lift = it.minY - floorY; if (lift > 1.7 || lift < -0.6) continue; if (done.some(q => Math.abs(q[0] - it.fp[0]) < 0.12 && Math.abs(q[1] - it.fp[1]) < 0.12)) continue; done.push(it.fp); const up = Math.max(0, lift); gl.uniform1i(u.uMode, 2); gl.uniform3f(u.uCol, 0, 0, 0);
-        for (const [pad, al, kf] of sc.table ? [[0.6, 0.2, 2.2]] : [[0.55, 0.2, 2.2], [0.14, 0.4, 9]]) { gl.uniformMatrix4fv(u.uMVP, false, m4.chain(VP, m4.tr(it.fp[0], floorY + 0.001, it.fp[1]), m4.rx(-Math.PI / 2), m4.sc((it.fp[2] + pad) * (1 + up * 0.5), (Math.max(it.fp[3], 0.12) + pad) * (1 + up * 0.5), 1))); gl.uniform1f(u.uAlpha, al * (lightBg ? 0.55 : 1) / (1 + up * kf)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); } } }
-      /* cast shadows: the outline of each card projected on the floor along the light. They turn, narrow and slide with the card, and close in on it as it comes down */
-      if (fx.shadow && !sc.table) { const lx = 0.36, lz = -0.42, F = new Float32Array([1, 0, 0, 0, lx, 0, lz, 0, 0, 0, 1, 0, -lx * floorY, floorY + 0.0012, -lz * floorY, 1]); gl.uniform1i(u.uMode, 6); gl.uniform4f(u.uRecv, 0, 0, 0, 0); gl.uniform2f(u.uCardSize, a, 1); gl.uniform1f(u.uRad, rad); gl.uniform1f(u.uClip, 0);
-        for (const it of far) { const up = Math.max(0, it.minY - floorY); if (up > 2.4) continue; const soft = Math.min(0.2, 0.05 + 0.09 * up), mg = soft * 2.4; gl.uniformMatrix4fv(u.uMVP, false, m4.chain(VP, F, it.M, m4.sc(a + mg, 1 + mg, 1))); gl.uniform2f(u.uSize, a + mg, 1 + mg); gl.uniform1f(u.uFade, soft); gl.uniform1f(u.uAlpha, (lightBg ? 0.2 : 0.4) / (1 + up * 1.4) / (sc.single ? 1 : 1.7)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); } }
       /* reflection, on a glossy floor only: each card mirrored under the floor, fading away from it */
       if (kind === "gloss") { const mir = m4.chain(m4.tr(0, 2 * floorY, 0), m4.sc(1, -1, 1)); for (const it of far) face(it, m4.mul(mir, it.M), lightBg ? 0.2 : 0.34, 1, -1, it.p.sw); }
     }
@@ -280,20 +284,33 @@
     if (fx.trail && sc.single) { const it = insts[0]; for (let k = 3; k >= 1; k--) { const tt = t - k * 0.03 / ST.dur; if (tt < 0) continue; const q = stPoseAt(tt); face(it, m4.chain(G, m4.tr(q.x, q.y, q.z), m4.ry(q.yaw), m4.rx(q.pitch), m4.rz(q.roll)), [0, 0.2, 0.12, 0.07][k], 0, 1, q.sw); } }
     /* the cards: visible face, then the four edges of the board */
     gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.clear(gl.DEPTH_BUFFER_BIT);
-    for (const it of far) {
-      /* shadow of the card on what lies under it: its outline projected along the light, once on the table and once on each of the cards just beneath, cut to that card.
-         So it turns with the card, thins out when the card stands on edge, slides away and softens as the card rises, and never hangs in the air beside a pile */
-      if (sc.stack && fx.shadow) { const p = it.p, kx = 0.32, ky = -0.4, recv = [];
-        if (sc.table && !insts.some(q => q !== it && q.p.z < p.z - 1e-5 && Math.hypot(q.p.x - p.x, q.p.y - p.y) < 0.06)) recv.push([-0.0006, 0, 0, 0, 0]); /* in a squared pile only the bottom card darkens the table: one shadow, not one per card */
-        const under = insts.filter(q => q !== it && q.p.z < p.z - 1e-5 && Math.abs(Math.sin(q.p.yaw)) < 0.06 && Math.abs(q.p.pitch) < 0.06 && Math.hypot(q.p.x - p.x, q.p.y - p.y) < 1.5).sort((x, y) => y.p.z - x.p.z).slice(0, 4);
-        for (const q of under) recv.push([q.p.z, q.p.x, q.p.y, q.p.roll * (Math.cos(q.p.yaw) < 0 ? -1 : 1), 1]);
-        gl.depthMask(false); gl.uniform1f(u.uClip, 0); gl.uniform1i(u.uMode, 6); gl.uniform2f(u.uCardSize, a, 1); gl.uniform1f(u.uRad, rad);
-        for (const [zb, rx, ry, rr, on] of recv) { const hgt = Math.max(0, p.z - zb), soft = Math.min(0.16, 0.014 + 0.2 * hgt), mg = soft * 2.4, S = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, kx, ky, 0, 0, -kx * zb, -ky * zb, zb + 0.0011, 1]);
-          const Mg = m4.chain(S, m4.tr(p.x, p.y, p.z), m4.ry(p.yaw), m4.rx(p.pitch), m4.rz(p.roll), m4.sc(a + mg, 1 + mg, 1));
-          gl.uniformMatrix4fv(u.uMVP, false, m4.chain(VP, G, Mg)); gl.uniformMatrix4fv(u.uM, false, Mg); gl.uniform4f(u.uRecv, rx, ry, rr, on); gl.uniform2f(u.uSize, a + mg, 1 + mg); gl.uniform1f(u.uFade, soft); gl.uniform1f(u.uAlpha, (lightBg ? 0.34 : 0.6) / (1 + hgt * 2.2)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); }
-        gl.uniform4f(u.uRecv, 0, 0, 0, 0); gl.depthMask(true); }
-      face(it, it.M, 1, 0, 1, it.p.sw); const thk = ST_THK * 0.8; gl.uniform1i(u.uMode, 1); gl.uniform1f(u.uAlpha, 1); gl.uniform3f(u.uCol, 0.9, 0.88, 0.83); gl.uniform1f(u.uShade, 0.62 + 0.38 * (1 - (it.shade - 0.72) / 0.28)); /* the edge of the board catches the light as the card turns away */ gl.uniform1f(u.uClip, floorOn && !sc.table ? 1 : 0);
-      for (const sgn of [-1, 1]) { let Me = m4.chain(it.M, m4.tr(sgn * a / 2, 0, 0), m4.ry(Math.PI / 2), m4.sc(thk, 1 - 2 * rad, 1)); gl.uniformMatrix4fv(u.uMVP, false, m4.mul(VP, Me)); gl.uniformMatrix4fv(u.uM, false, Me); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); Me = m4.chain(it.M, m4.tr(0, sgn / 2, 0), m4.rx(Math.PI / 2), m4.sc(a - 2 * rad, thk, 1)); gl.uniformMatrix4fv(u.uMVP, false, m4.mul(VP, Me)); gl.uniformMatrix4fv(u.uM, false, Me); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); } gl.uniform1f(u.uClip, 0); }
+    const edges = (it, al) => { const thk = ST_THK * 0.8; gl.uniform1i(u.uMode, 1); gl.uniform1f(u.uAlpha, al); gl.uniform3f(u.uCol, 0.9, 0.88, 0.83); gl.uniform1f(u.uShade, 0.62 + 0.38 * (1 - (it.shade - 0.72) / 0.28)); /* the edge of the board catches the light as the card turns away */ gl.uniform1f(u.uClip, floorOn && !sc.table ? 1 : 0);
+      for (const sgn of [-1, 1]) { let Me = m4.chain(it.M, m4.tr(sgn * a / 2, 0, 0), m4.ry(Math.PI / 2), m4.sc(thk, 1 - 2 * rad, 1)); gl.uniformMatrix4fv(u.uMVP, false, m4.mul(VP, Me)); gl.uniformMatrix4fv(u.uM, false, Me); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); Me = m4.chain(it.M, m4.tr(0, sgn / 2, 0), m4.rx(Math.PI / 2), m4.sc(a - 2 * rad, thk, 1)); gl.uniformMatrix4fv(u.uMVP, false, m4.mul(VP, Me)); gl.uniformMatrix4fv(u.uM, false, Me); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); } gl.uniform1f(u.uClip, 0); };
+    for (const it of far) { face(it, it.M, 1, 0, 1, it.p.sw); edges(it, 1); }
+    /* shadows. All the shadows of the scene are gathered in one buffer, where two shadows that overlap keep the darker of the two instead of adding up; the buffer is then laid over the picture
+       once, with one opacity. So the shadow of a pile is no blacker than the shadow of one card, and a shadow never doubles where two cards cross.
+       In the buffer: 1. what falls on the floor or the table; 2. the cards themselves wipe what they cover and set the depth; 3. what falls on a card, cut to that card and hidden by any card above it.
+       Each shadow is the outline of its card projected along the light: it turns, thins and slides with the card, grows softer and a little lighter as the card rises */
+    if (fx.shadow) { const sh = stShadowBuf(g, W, H); if (sh) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, sh.fb); gl.viewport(0, 0, W, H); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      const darkest = () => { gl.enable(gl.BLEND); if (g.maxEq) { gl.blendEquation(g.maxEq); gl.blendFunc(gl.ONE, gl.ONE); } else gl.blendFuncSeparate(gl.ZERO, gl.ONE, gl.ONE, gl.ONE_MINUS_SRC_ALPHA); };
+      const cast = (MVP, Mg, mg, soft, k, rv) => { gl.uniformMatrix4fv(u.uMVP, false, MVP); gl.uniformMatrix4fv(u.uM, false, Mg); gl.uniform4f(u.uRecv, rv[0], rv[1], rv[2], rv[3]); gl.uniform2f(u.uSize, a + mg, 1 + mg); gl.uniform1f(u.uFade, soft); gl.uniform1f(u.uAlpha, k); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); };
+      const lean = (zb, p, mg) => m4.chain(new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0.32, -0.4, 0, 0, -0.32 * zb, 0.4 * zb, zb + 0.002, 1]), m4.tr(p.x, p.y, p.z), m4.ry(p.yaw), m4.rx(p.pitch), m4.rz(p.roll), m4.sc(a + mg, 1 + mg, 1));
+      gl.disable(gl.DEPTH_TEST); darkest(); gl.uniform1f(u.uClip, 0); gl.uniform2f(u.uCardSize, a, 1); gl.uniform1f(u.uRad, rad); const none = [0, 0, 0, 0], I = m4.id();
+      if (floorOn && !sc.table) {
+        /* on the floor: a tight patch right under a card that stands close to it, and the outline of the card carried along the light */
+        gl.uniform1i(u.uMode, 2); gl.uniform3f(u.uCol, 0, 0, 0); for (const it of far) { const up = Math.max(0, it.minY - floorY); if (up > 0.5) continue; gl.uniformMatrix4fv(u.uMVP, false, m4.chain(VP, m4.tr(it.fp[0], floorY + 0.0012, it.fp[1]), m4.rx(-Math.PI / 2), m4.sc(it.fp[2] + 0.16, Math.max(it.fp[3], 0.1) + 0.16, 1))); gl.uniform1f(u.uAlpha, 0.8 / (1 + up * 9)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); }
+        gl.uniform1i(u.uMode, 6); const lx = 0.36, lz = -0.42, F = new Float32Array([1, 0, 0, 0, lx, 0, lz, 0, 0, 0, 1, 0, -lx * floorY, floorY + 0.0012, -lz * floorY, 1]);
+        for (const it of far) { const up = Math.max(0, it.minY - floorY); if (up > 2.6) continue; const soft = Math.min(0.22, 0.045 + 0.1 * up), mg = soft * 2.4; cast(m4.chain(VP, F, it.M, m4.sc(a + mg, 1 + mg, 1)), I, mg, soft, 1 / (1 + up * 0.6), none); } }
+      if (sc.stack && sc.table) { gl.uniform1i(u.uMode, 6); for (const it of far) { const hgt = Math.max(0, it.p.z), soft = Math.min(0.18, 0.012 + 0.22 * hgt), mg = soft * 2.4, Mg = lean(-0.0026, it.p, mg); cast(m4.chain(VP, G, Mg), Mg, mg, soft, 1 / (1 + hgt * 1.3), none); } }
+      gl.disable(gl.BLEND); gl.enable(gl.DEPTH_TEST); gl.colorMask(false, false, false, true); for (const it of far) { face(it, it.M, 0, 0, 1, -9); edges(it, 0); } gl.colorMask(true, true, true, true);
+      if (sc.stack) { darkest(); gl.depthMask(false); gl.uniform1f(u.uClip, 0); gl.uniform1i(u.uMode, 6); gl.uniform2f(u.uCardSize, a, 1); gl.uniform1f(u.uRad, rad);
+        for (const it of far) { const p = it.p, under = insts.filter(q => q !== it && q.p.z < p.z - 1e-5 && Math.abs(Math.sin(q.p.yaw)) < 0.06 && Math.abs(q.p.pitch) < 0.06 && Math.hypot(q.p.x - p.x, q.p.y - p.y) < 1.7).sort((x, y) => y.p.z - x.p.z).slice(0, 8);
+          for (const q of under) { const hgt = p.z - q.p.z, soft = Math.min(0.18, 0.012 + 0.22 * hgt), mg = soft * 2.4, Mg = lean(q.p.z, p, mg); cast(m4.chain(VP, G, Mg), Mg, mg, soft, 1 / (1 + hgt * 1.3), [q.p.x, q.p.y, q.p.roll * (Math.cos(q.p.yaw) < 0 ? -1 : 1), 1]); } }
+        gl.depthMask(true); }
+      gl.uniform4f(u.uRecv, 0, 0, 0, 0); gl.uniformMatrix4fv(u.uM, false, I); gl.blendEquation(gl.FUNC_ADD); gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, W, H);
+      gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND); normal(); gl.useProgram(g.shade.p); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, sh.tex); gl.uniform1i(g.shade.u.uTex, 0); gl.uniform1f(g.shade.u.uAmt, lightBg ? 0.3 : 0.5); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      gl.useProgram(g.card.p); gl.enable(gl.DEPTH_TEST); } }
     /* particles, hidden by the cards when they pass behind */
     if (fx.dust || burst > 0.02) { gl.depthMask(false); gl.blendFunc(gl.ONE, gl.ONE); gl.useProgram(g.dust.p); gl.bindBuffer(gl.ARRAY_BUFFER, g.pts); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0); gl.uniformMatrix4fv(g.dust.u.uVP, false, VP); gl.uniform1f(g.dust.u.uTime, ST.clock); gl.uniform1f(g.dust.u.uPx, H / 180); gl.uniform1f(g.dust.u.uAmt, (fx.dust ? (lightBg ? 0.35 : 0.8) * amt : 0) + burst * 0.9); gl.uniform3fv(g.dust.u.uCol, lightBg ? [0.5, 0.45, 0.35] : [1, 0.86, 0.62]); gl.drawArrays(gl.POINTS, 0, g.N); gl.depthMask(true); gl.bindBuffer(gl.ARRAY_BUFFER, g.quad); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0); }
     gl.disable(gl.DEPTH_TEST);
