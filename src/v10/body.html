@@ -1,0 +1,361 @@
+<div class="app">
+  <header class="top">
+    <a class="logo" href="#"><span class="mark"></span>Prisme</a>
+    <nav class="nav" aria-label="Pages">
+      <button type="button" data-page="atelier" aria-pressed="true">Atelier</button>
+      <button type="button" data-page="plans" aria-pressed="false">Plans de découpe</button>
+      <button type="button" data-page="maquettes" aria-pressed="false">Maquettes</button>
+    </nav>
+    <div class="top__right">
+      <button type="button" class="btn icon" id="undo" title="Annuler" aria-label="Annuler">↶</button>
+      <button type="button" class="btn icon" id="redo" title="Rétablir" aria-label="Rétablir">↷</button>
+      <span class="sep"></span>
+      <div class="menu"><button type="button" class="btn icon" id="helpBtn" aria-label="Aide et références">?</button>
+        <div class="pop help-pop" id="helpPop" hidden>
+          <h2>Comment ça marche</h2>
+          <p class="note">1. Importe ton illustration (ou dépose-la sur la carte). 2. Choisis une finition dans le nuancier. 3. Indique où l'appliquer : partout, bordure, contours, sujet… 4. Vérifie le masque de finition, puis exporte les fichiers d'impression.</p>
+          <p class="note">Survole la carte pour déplacer la lumière, glisse pour l'incliner, molette pour zoomer. Les rendus sont des simulations : seuls les visuels et masques exportés partent chez l'imprimeur.</p>
+          <h3>Formats de cartes</h3><div class="ref-wrap" id="refFormats"></div>
+          <h3>Finitions par jeu</h3><div class="glossary" id="refFinishes"></div>
+          <h3>Protections</h3><div class="ref-wrap" id="protectRef"></div>
+          <h3>Packaging par jeu</h3><div class="ref-wrap" id="packRef"></div>
+          <div id="refSources"></div>
+        </div>
+      </div>
+      <div class="menu"><button type="button" class="btn primary" id="exportBtn">⤓ Exporter</button>
+        <div class="menu__list" id="exportMenu" hidden>
+          <button type="button" data-export="print">Fichiers d'impression <small>zip</small></button>
+          <button type="button" data-export="png">Capture du rendu <small>png</small></button>
+          <button type="button" data-export="svg">Plan de découpe <small>svg</small></button>
+          <button type="button" data-export="pdf">PDF prêt à imprimer <small>repères, fond perdu</small></button>
+          <button type="button" data-export="flat">Maquette à plat <small>png</small></button>
+          <div class="sep"></div>
+          <button type="button" data-export="save">Enregistrer le projet <small>json</small></button>
+          <label for="loadProject">Ouvrir un projet <small>json</small><input type="file" id="loadProject" accept="application/json,.json"></label>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-head">
+    <div><p class="crumb">Prisme / Studio TCG</p><h1 id="pageTitle">Atelier d'impression</h1><p class="sub" id="pageSub">Choisis une finition et sa zone. Incline la carte pour examiner le reflet.</p></div>
+    <div class="meta-row">
+      <div class="meta"><span class="lbl">Carton / tranche</span><button type="button" class="val" id="stockBtn">0,33 <small>mm</small></button>
+        <div class="pop" id="stockPop" hidden>
+          <div class="kv">
+            <label class="field">Carton<select id="core"><option value="black core">Black core 300 g (0,33 mm)</option><option value="blue core">Blue core 300 g (0,33 mm)</option><option value="white core">White core 300 g (0,33 mm)</option></select></label>
+            <label class="field">Teinte du papier<select id="stock"><option value="#f6f3ec">Blanc</option><option value="#0b0b0e">Noir</option><option value="#c9a97a">Kraft</option><option value="#e9e4d6">Ivoire</option></select></label>
+            <label class="field">Laminage<select id="coatKind"><option value="gloss">Brillant</option><option value="satin">Satiné</option><option value="matte">Mat / soft touch</option><option value="none">Sans vernis</option></select></label>
+            <label class="field">Tranche<select id="edge"><option value="">Non teintée</option><option value="gold">Dorée</option><option value="silver">Argentée</option><option value="black">Noire</option><option value="red">Rouge</option></select></label>
+          </div>
+          <div class="slider small"><span>Brillance du laminage</span><output id="o-coat">60%</output><input type="range" id="coat" min="0" max="150" value="60"></div>
+          <p class="note">Épaisseur fixée à 0,33 mm, le standard des cartes à jouer. Elle est reportée sur la tranche de la carte et dans la fiche technique.</p>
+        </div>
+      </div>
+      <div class="format-btn"><button type="button" id="formatBtn"><span class="glyph"></span><span id="formatVal">63 × 88 mm</span></button>
+        <div class="pop" id="formatPop" hidden>
+          <input type="search" id="fmtFilter" placeholder="Pokémon, Yu-Gi-Oh!, Lorcana, tarot…">
+          <div class="pills" id="fmtGroups"></div>
+          <div class="formats" id="formats"></div>
+          <div id="fmtCustom" hidden class="kv"></div>
+          <p class="note" id="fmtNote"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Atelier ===== -->
+  <section class="page" id="page-atelier">
+    <div class="cols">
+      <div class="col">
+        <div id="atelierStageHost"></div>
+        <div class="panel">
+          <div class="panel__bar"><h2>Ton illustration</h2><div class="row"><button type="button" class="link-btn" id="fitBtn">⛶ Recadrer</button><button type="button" class="link-btn" id="sample">✦ Exemple</button><label class="link-btn" for="file">⤒ Importer une image<input type="file" id="file" accept="image/*" multiple></label></div></div>
+          <div class="lib__strip" id="libStrip"></div>
+          <div class="lib__fit" id="fitRow" hidden>
+            <div class="row"><button type="button" class="chip" data-fit="cover">Couvrir la carte</button><button type="button" class="chip" data-fit="contain">Contenir</button><button type="button" class="chip" data-fit="center">Centrer</button></div>
+            <div class="kv">
+              <div class="slider small"><span>Position X</span><output id="o-layerX">50%</output><input type="range" id="layerX" min="-50" max="150" value="50"></div>
+              <div class="slider small"><span>Position Y</span><output id="o-layerY">50%</output><input type="range" id="layerY" min="-50" max="150" value="50"></div>
+              <div class="slider small"><span>Taille</span><output id="o-layerScale">100%</output><input type="range" id="layerScale" min="5" max="300" value="100"></div>
+              <div class="slider small"><span>Rotation</span><output id="o-layerRot">0°</output><input type="range" id="layerRot" min="-180" max="180" value="0"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <aside class="col">
+        <div class="panel"><div class="panel__in">
+          <p class="kicker">01 / Nuancier</p>
+          <div class="panel__bar" style="padding:0"><h2>Finitions d'impression</h2><button type="button" class="link-btn" id="seeAll">Tout voir (<span id="fxCount">0</span>) →</button></div>
+          <div class="pills" id="catTabs"></div>
+          <div class="fxgrid" id="effects"></div>
+        </div></div>
+        <div class="panel"><div class="panel__in">
+          <p class="kicker">02 / Réglages</p>
+          <div class="fx-title"><h2 id="fxTitle">—</h2><button type="button" class="btn icon" id="layerDel" title="Retirer ce calque" aria-label="Retirer ce calque">🗑</button></div>
+          <p class="fx-sub"><span id="fxSub"></span> · <button type="button" class="link" id="noteBtn">Fiche procédé ↗</button></p>
+          <p class="note" id="fxNote" hidden></p>
+          <div class="slider"><span>Intensité du rendu</span><output id="o-foil">—</output><input type="range" id="foil" min="0" max="150" value="80"></div>
+          <p class="q">Où appliquer la finition ?</p>
+          <div class="chips zones" id="zones">
+            <button type="button" class="chip" data-mask="0">Partout</button>
+            <button type="button" class="chip" data-mask="1">Intérieur</button>
+            <button type="button" class="chip" data-mask="2">Bordure</button>
+            <button type="button" class="chip" data-mask="10">Contours</button>
+            <button type="button" class="chip" data-mask="5">Clairs</button>
+            <button type="button" class="chip" data-mask="6">Sombres</button>
+            <button type="button" class="chip" data-mask="7">Fond</button>
+            <button type="button" class="chip" data-mask="9">Sujet</button>
+            <button type="button" class="chip" data-mask="12">Couleurs vives</button>
+            <button type="button" class="chip" data-mask="8">Une couleur…</button>
+            <button type="button" class="chip" data-mask="13">Motif</button>
+            <button type="button" class="chip tool" id="brushBtn">✎ Pinceau</button>
+            <button type="button" class="chip tool" id="invertChip" aria-pressed="false">Inverser</button>
+          </div>
+          <div class="zone-tools" id="winRow" hidden>
+            <div class="kv">
+              <div class="slider small"><span>Marge haut</span><output id="o-wt">6%</output><input type="range" id="wt" min="0" max="80" step="0.5" value="6"></div>
+              <div class="slider small"><span>Marge bas</span><output id="o-wb">6%</output><input type="range" id="wb" min="0" max="80" step="0.5" value="6"></div>
+              <div class="slider small"><span>Marge gauche</span><output id="o-wl">6%</output><input type="range" id="wl" min="0" max="45" step="0.5" value="6"></div>
+              <div class="slider small"><span>Marge droite</span><output id="o-wr">6%</output><input type="range" id="wr" min="0" max="45" step="0.5" value="6"></div>
+            </div>
+          </div>
+          <div class="zone-tools" id="thrRow" hidden>
+            <div class="kv">
+              <div class="slider small"><span>Seuil de détection</span><output id="o-maskThr">—</output><input type="range" id="maskThr" min="10" max="90" value="50"></div>
+              <div class="slider small"><span>Adoucir le bord</span><output id="o-maskSoft">—</output><input type="range" id="maskSoft" min="1" max="50" value="15"></div>
+            </div>
+          </div>
+          <div class="zone-tools" id="pickRow" hidden>
+            <div class="row"><button type="button" class="btn small" id="pickbtn">Cliquer sur la carte pour choisir</button><span class="swatches" id="pickswatches"></span><button type="button" class="link-btn muted" id="pickclear">Effacer</button></div>
+            <div class="slider small"><span>Tolérance</span><output id="o-pickTol">22%</output><input type="range" id="pickTol" min="2" max="60" value="22"></div>
+          </div>
+          <div class="zone-tools" id="brushRow" hidden>
+            <div class="row"><span class="note">Peins la zone sur la carte. Blanc = finition.</span><button type="button" class="chip" id="brushErase" aria-pressed="false">Gomme</button><button type="button" class="link-btn muted" id="brushClear">Tout effacer</button><label class="link-btn muted" for="maskfile">Importer un masque<input type="file" id="maskfile" accept="image/*"></label></div>
+            <div class="slider small"><span>Taille du pinceau</span><output id="o-brushSize">8%</output><input type="range" id="brushSize" min="1" max="30" value="8"></div>
+          </div>
+          <details class="disc" id="advFold"><summary>⚙ Ajuster le relief et la texture</summary><div class="inner">
+            <div class="kv">
+              <div class="slider small"><span>Relief de l'image</span><output id="o-imgRelief">—</output><input type="range" id="imgRelief" min="-300" max="300" value="100"></div>
+              <div class="slider small"><span>Texture du motif</span><output id="o-bump">—</output><input type="range" id="bump" min="0" max="300" value="100"></div>
+              <div class="slider small"><span>Échelle du motif</span><output id="o-scale">—</output><input type="range" id="scale" min="25" max="300" value="100"></div>
+              <div class="slider small"><span>Brillance</span><output id="o-glare">—</output><input type="range" id="glare" min="0" max="150" value="60"></div>
+              <div class="slider small"><span>Couleurs irisées</span><output id="o-sat">—</output><input type="range" id="sat" min="0" max="100" value="100"></div>
+              <div class="slider small"><span>Ombre du relief</span><output id="o-relief">—</output><input type="range" id="relief" min="0" max="200" value="35"></div>
+              <div class="slider small"><span>Angle du motif</span><output id="o-angle">—</output><input type="range" id="angle" min="-180" max="180" value="0"></div>
+              <div class="slider small"><span>Paillettes</span><output id="o-sparkle">—</output><input type="range" id="sparkle" min="0" max="150" value="0"></div>
+              <div class="slider small"><span>Bandes de couleur</span><output id="o-bands">—</output><input type="range" id="bands" min="0" max="300" value="100"></div>
+              <div class="slider small"><span>Foil sous les encres sombres</span><output id="o-ink">—</output><input type="range" id="ink" min="0" max="100" value="100"></div>
+              <div class="slider small"><span>Ombres de cavité</span><output id="o-cavity">—</output><input type="range" id="cavity" min="0" max="150" value="30"></div>
+              <div class="slider small"><span>Détails fins</span><output id="o-detail">—</output><input type="range" id="detail" min="0" max="100" value="0"></div>
+              <div class="slider small"><span>Flou de la hauteur</span><output id="o-blur">—</output><input type="range" id="blur" min="0" max="12" step="0.5" value="2"></div>
+              <div class="slider small"><span>Volume (parallaxe)</span><output id="o-depth">—</output><input type="range" id="depth" min="0" max="200" value="0"></div>
+              <div class="slider small"><span>Foil sur les contours</span><output id="o-edgeFoil">—</output><input type="range" id="edgeFoil" min="0" max="200" value="0"></div>
+              <div class="slider small"><span>Dureté du reflet</span><output id="o-specPow">—</output><input type="range" id="specPow" min="2" max="80" value="16"></div>
+              <div class="slider small"><span>Étendue de la lumière</span><output id="o-lightZ">—</output><input type="range" id="lightZ" min="25" max="140" value="60"></div>
+              <div class="slider small"><span>Température</span><output id="o-warm">—</output><input type="range" id="warm" min="-100" max="100" value="0"></div>
+            </div>
+            <div class="kv">
+              <label class="field">Source du relief<select id="reliefSrc"><option value="0">Motif</option><option value="1">Image (luminosité)</option><option value="2">Contours</option><option value="3">Biseau de la zone</option><option value="4">Hachures modulées</option><option value="5">Motif + image</option><option value="6">Contours + image</option></select></label>
+              <label class="field">Motif<select id="pattern"></select></label>
+              <label class="field">Type de foil<select id="blend"><option value="0">Irisé (ajouté)</option><option value="2">Métal</option><option value="3">Colorisé</option><option value="7">Nacré (voile)</option><option value="6">Aucun</option></select></label>
+              <label class="field">Palette<select id="palette"></select></label>
+              <label class="field">Teinte métal<select id="tint"></select></label>
+              <label class="field">Profondeur (parallaxe)<select id="depthSrc"><option value="0">Aucune</option><option value="1">Clair = devant</option><option value="2">Sombre = devant</option><option value="3">Sujet devant</option><option value="5">Zone devant</option><option value="4">Carte importée</option></select></label>
+            </div>
+            <div class="row" id="depthRow" hidden><label class="btn small" for="depthfile">Carte de profondeur<input type="file" id="depthfile" accept="image/*"></label></div>
+            <div class="row"><label class="check"><input type="checkbox" id="flatOnly"> Motif seulement dans les aplats</label></div>
+            <div class="kv">
+              <div class="slider small"><span>Intensité globale de la lumière</span><output id="o-intensity">100%</output><input type="range" id="intensity" min="0" max="150" value="100"></div>
+              <div class="slider small"><span>Inclinaison max au glisser</span><output id="o-tilt">16°</output><input type="range" id="tilt" min="0" max="35" value="16"></div>
+              <label class="field">Qualité du rendu<select id="quality"><option value="1.5">Haute</option><option value="1">Standard</option><option value="0.6">Économique</option><option value="0.45">Minimale</option></select></label>
+            </div>
+          </div></details>
+          <div class="panel__foot" style="margin:0 -20px -18px; border-radius:0 0 var(--radius) var(--radius)"><button type="button" class="link-btn" id="layersBtn">⧉ Calques (<span id="layerCount">0</span>)</button><button type="button" class="link-btn" id="accentBtn">+ Superposer un effet</button></div>
+        </div></div>
+
+        <div class="panel" id="accentPanel" hidden><div class="panel__in">
+          <div class="panel__bar" style="padding:0"><div><p class="kicker">03 / Effet superposé</p><h2>Second procédé</h2></div><button type="button" class="link-btn muted" id="accentClose">Fermer</button></div>
+          <p class="note">Une dorure, une encre ou un vernis ajouté par-dessus la finition du calque, sur sa propre zone.</p>
+          <div class="accent-grid" id="accentQuick"></div>
+          <p class="q">Sur quelle zone ?</p>
+          <div class="chips" id="accentZones">
+            <button type="button" class="chip" data-amask="10">Contours</button><button type="button" class="chip" data-amask="2">Bordure</button><button type="button" class="chip" data-amask="1">Intérieur</button><button type="button" class="chip" data-amask="9">Sujet</button><button type="button" class="chip" data-amask="7">Fond</button>
+            <button type="button" class="chip" data-amask="5">Clairs</button><button type="button" class="chip" data-amask="6">Sombres</button><button type="button" class="chip" data-amask="12">Couleurs vives</button><button type="button" class="chip" data-amask="8">Une couleur…</button><button type="button" class="chip" data-amask="13">Motif</button><button type="button" class="chip" data-amask="0">Partout</button>
+          </div>
+          <div class="row"><label class="check"><input type="checkbox" id="accent"> Actif</label><label class="check"><input type="checkbox" id="accentInvert"> Inverser</label><label class="check"><input type="checkbox" id="accentWithin"> Limiter à la zone principale</label></div>
+          <div class="kv">
+            <div class="slider small"><span>Quantité</span><output id="o-accentAmt">—</output><input type="range" id="accentAmt" min="0" max="100" value="100"></div>
+            <div class="slider small"><span>Relief</span><output id="o-accentRelief">—</output><input type="range" id="accentRelief" min="0" max="300" value="100"></div>
+          </div>
+          <label class="field">Type<select id="accentType"></select></label>
+        </div></div>
+
+        <div class="panel" id="layersPanel"><div class="panel__in">
+          <div class="panel__bar" style="padding:0"><div><p class="kicker">04 / Calques</p><h2>Composition <span class="note" id="layersDoc"></span></h2></div><div class="row"><select id="addKind" aria-label="Ajouter un calque" style="width:auto"><option value="">Ajouter…</option><option value="text">Texte</option><option value="bg">Fond uni ou dégradé</option><option value="badge">Badge</option><option value="frame">Cadre généré</option></select><button type="button" class="link-btn muted" id="layersClose">Fermer</button></div></div>
+          <div class="layer-list" id="layerList"></div>
+          <p class="note">Chaque image importée est un calque avec sa propre finition et sa zone. Un PNG détouré donne un sujet exact.</p>
+          <div class="row"><input type="text" id="layerName" class="grow" value="" aria-label="Nom du calque" style="width:auto"><span class="badge" id="layerKind">—</span><label class="check"><input type="checkbox" id="layerVisible" checked> Visible</label><button type="button" class="btn small" id="layerDup">Dupliquer</button></div>
+          <div class="kv">
+            <label class="field">Fusion<select id="layerBlend"><option value="normal">Normale</option><option value="screen">Écran</option><option value="multiply">Produit</option><option value="add">Addition</option></select></label>
+            <div class="slider small"><span>Opacité</span><output id="o-layerOpacity">100%</output><input type="range" id="layerOpacity" min="0" max="100" value="100"></div>
+          </div>
+          <div id="edText" hidden class="kv">
+            <textarea id="txtText" rows="2" style="grid-column:1/-1"></textarea>
+            <label class="field">Police<select id="txtFont"><option value="Unbounded">Unbounded</option><option value="Cinzel">Cinzel</option><option value="Manrope">Manrope</option><option value="JetBrains Mono">Mono</option></select></label>
+            <label class="field">Graisse<select id="txtWeight"><option value="400">Normal</option><option value="700">Gras</option><option value="800">Très gras</option></select></label>
+            <div class="slider small"><span>Taille</span><output id="o-txtSize">8%</output><input type="range" id="txtSize" min="2" max="30" step="0.5" value="8"></div>
+            <div class="slider small"><span>Interlettrage</span><output id="o-txtSpacing">0</output><input type="range" id="txtSpacing" min="-5" max="30" value="0"></div>
+            <label class="field">Couleur<input type="color" id="txtColor" value="#ffffff"></label>
+            <label class="field">Contour<input type="color" id="txtStroke" value="#000000"></label>
+            <div class="slider small"><span>Épaisseur contour</span><output id="o-txtStrokeW">0</output><input type="range" id="txtStrokeW" min="0" max="12" value="0"></div>
+            <label class="field">Alignement<select id="txtAlign"><option value="center">Centré</option><option value="left">Gauche</option><option value="right">Droite</option></select></label>
+            <label class="check"><input type="checkbox" id="txtUpper"> Majuscules</label><label class="check"><input type="checkbox" id="txtShadow" checked> Ombre</label>
+          </div>
+          <div id="edFrame" hidden class="kv">
+            <label class="field">Style<select id="frStyle"><option value="thin">Bordure fine</option><option value="classic">Classique</option><option value="fullart">Full art</option><option value="ornate">Ornemental</option><option value="double">Double filet</option><option value="window">Fenêtre</option></select></label>
+            <label class="field">Couleur<input type="color" id="frColor" value="#e8b44a"></label>
+            <label class="field">Fond des zones<input type="color" id="frPanel" value="#101218"></label>
+            <div class="slider small"><span>Épaisseur</span><output id="o-frWidth">3%</output><input type="range" id="frWidth" min="0.5" max="10" step="0.5" value="3"></div>
+            <div class="slider small"><span>Opacité des zones</span><output id="o-frPanelA">70%</output><input type="range" id="frPanelA" min="0" max="100" value="70"></div>
+          </div>
+          <div id="edBg" hidden class="kv">
+            <label class="field">Type<select id="bgType"><option value="linear">Dégradé linéaire</option><option value="radial">Dégradé radial</option><option value="solid">Uni</option><option value="rays">Rayons</option></select></label>
+            <label class="field">Couleur 1<input type="color" id="bgC1" value="#1a1446"></label>
+            <label class="field">Couleur 2<input type="color" id="bgC2" value="#c9522f"></label>
+            <div class="slider small"><span>Angle</span><output id="o-bgAngle">90°</output><input type="range" id="bgAngle" min="0" max="360" value="90"></div>
+          </div>
+          <div id="edBadge" hidden class="kv">
+            <label class="field">Forme<select id="bdShape"><option value="circle">Cercle</option><option value="hex">Hexagone</option><option value="shield">Écu</option><option value="star">Étoile</option><option value="diamond">Losange</option><option value="pill">Pastille</option></select></label>
+            <label class="field">Texte<input type="text" id="bdText" value="SR" maxlength="6"></label>
+            <label class="field">Couleur<input type="color" id="bdColor" value="#e8b44a"></label>
+            <label class="field">Texte<input type="color" id="bdTextColor" value="#1a1200"></label>
+          </div>
+          <div id="backFold" hidden style="display:grid;gap:10px">
+            <h3>Motif de dos généré</h3>
+            <div class="backs" id="backs"></div>
+            <div class="kv"><label class="field">Couleur 1<input type="color" id="backC1" value="#1c2f6b"></label><label class="field">Couleur 2<input type="color" id="backC2" value="#e8b44a"></label></div>
+            <div class="row"><label class="field grow">Texte<input type="text" id="backText" value="" maxlength="24" placeholder="(aucun)"></label><label class="btn small" for="backfile">Importer un dos<input type="file" id="backfile" accept="image/*"></label></div>
+          </div>
+        </div></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ===== Plans de découpe ===== -->
+  <section class="page" id="page-plans" hidden>
+    <div class="row" style="justify-content:space-between"><div class="seg" id="dielineOpts"></div><div class="row"><button type="button" class="btn" id="dlPrint">Imprimer à 100 %</button><button type="button" class="btn accent" id="dlExportSvg">⤓ Télécharger le plan</button></div></div>
+    <div class="plans">
+      <div class="panel">
+        <div class="panel__bar"><h2 id="dlTitle">Carte</h2><div class="seg" id="dlArtSeg"><button type="button" data-art="1" aria-pressed="true">Plan avec visuels</button><button type="button" data-art="0" aria-pressed="false">Plan seul</button></div></div>
+        <div class="sheet" id="dielineView"></div>
+        <div class="sheet__foot"><span id="dlFoot"></span><span>Conventions : noir = coupe · bleu pointillé = pli · magenta = fond perdu · vert = sécurité</span></div>
+      </div>
+      <div class="col">
+        <div class="panel">
+          <div class="panel__in"><p class="note" style="font-weight:600;color:var(--ink)">Dimensions finales</p><div class="bignum" id="dlDims">—</div><p class="note" id="dlDimsNote"></p></div>
+          <div class="panel__in" style="border-top:1px solid var(--line)"><label class="field">Cartes par booster<input type="number" id="cardsPerPack" min="1" max="60" value="10"></label><p class="note" id="stackNote"></p></div>
+          <details class="acc"><summary>Modifier les dimensions</summary><div class="inner">
+            <div class="kv">
+              <label class="field">Fond perdu (mm)<input type="number" id="bleed" min="0" max="10" step="0.5" value="3"></label>
+              <label class="field">Sécurité (mm)<input type="number" id="safe" min="0" max="10" step="0.5" value="3"></label>
+              <label class="field">Résolution export<select id="dpi"><option value="300">300 dpi</option><option value="600">600 dpi</option><option value="150">150 dpi (aperçu)</option></select></label>
+              <label class="field">Boosters par display<input type="number" id="packsPerBox" min="1" max="60" value="36"></label>
+            </div>
+            <div class="kv" id="dlBooster">
+              <label class="field">Booster · largeur (mm)<input type="number" id="boosterW" min="40" max="120" step="0.5" value="67"></label>
+              <label class="field">Booster · hauteur (mm)<input type="number" id="boosterH" min="60" max="200" step="0.5" value="117"></label>
+              <label class="field">Sertissage (mm)<input type="number" id="crimp" min="5" max="20" step="0.5" value="10"></label>
+              <label class="field">Soudure dorsale (mm)<input type="number" id="fin" min="6" max="25" step="0.5" value="12"></label>
+            </div>
+            <div class="kv" id="dlBox">
+              <label class="field">Boîte · largeur (mm)<input type="number" id="boxW" min="30" max="400" step="0.5" value="135"></label>
+              <label class="field">Boîte · hauteur (mm)<input type="number" id="boxH" min="30" max="400" step="0.5" value="122"></label>
+              <label class="field">Boîte · profondeur (mm)<input type="number" id="boxD" min="10" max="300" step="0.5" value="74"></label>
+              <button type="button" class="btn small" id="boxAuto" style="align-self:end">Selon le nombre de boosters</button>
+            </div>
+          </div></details>
+          <details class="acc"><summary>Choisir les images</summary><div class="inner">
+            <p class="note">Le recto de la carte sert de visuel principal ; le verso habille le dos du booster. Change-les dans l'Atelier (Recto / Verso).</p>
+            <div class="kv"><label class="field">Titre du packaging<input type="text" id="packTitle" value="SÉRIE 01" maxlength="24"></label><label class="field">Sous-titre<input type="text" id="packSub" value="BOOSTER" maxlength="32"></label><label class="field">Couleur de boîte<input type="color" id="boxColor" value="#1b1d2a"></label><label class="field">Finition du sachet<select id="packFinish"><option value="h-oil">Film holographique</option><option value="h-silver">Métallisé argent</option><option value="h-secret">Holo diagonales</option><option value="h-cosmic">Holo cosmos</option><option value="i-none">Mat imprimé</option></select></label></div>
+          </div></details>
+          <details class="acc" id="preAcc"><summary>Contrôle avant impression<span class="badge" id="preBadge">—</span></summary><div class="inner"><div class="pre" id="preflight"></div></div></details>
+          <details class="acc"><summary>Montage et impression</summary><div class="inner">
+            <p class="note">Carton 300 g, épaisseur 0,33 mm, quadri CMJN. Le dossier d'export contient recto et verso à 300 dpi avec fond perdu, un masque noir et blanc par procédé (dorure, holographique, vernis, embossage, encre), les plans SVG à l'échelle 1:1 et une fiche technique.</p>
+            <p class="note">Booster : film imprimé à plat (deux demi-dos, recto, soudure dorsale), sertissages haut et bas non imprimés. Display : boîte à rabats « straight tuck end », collage 15 mm.</p>
+            <button type="button" class="btn small" id="dlExportPng">Exporter la maquette à plat (PNG)</button>
+          </div></details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Maquettes ===== -->
+  <section class="page" id="page-maquettes" hidden>
+    <div class="cols">
+      <div class="col"><div id="mqStageHost"></div></div>
+      <aside class="col">
+        <div class="panel"><div class="panel__in">
+          <h2>Choisis un support</h2>
+          <div class="supports" id="supports"></div>
+          <div class="mq-fields" id="mqFields"></div>
+          <button type="button" class="btn" id="toPlans">⌗ Ouvrir les plans de découpe</button>
+        </div></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- the stage panel is moved between the Atelier and Maquettes pages -->
+  <div class="panel" id="stagePanel">
+    <div class="panel__bar">
+      <div class="menu"><button type="button" class="link-btn" id="layerBtn">🖼 <span id="layerBtnName">Illustration</span> ⌄</button><div class="menu__list left" id="layerMenu" hidden></div></div>
+      <div class="seg"><button type="button" data-face="front" aria-pressed="true">Recto</button><button type="button" data-face="back" aria-pressed="false">Verso</button></div>
+    </div>
+    <div class="stage" id="bench">
+      <div class="stage__tag" id="fxTag"><i></i><span id="fxname"></span></div>
+      <div class="menu stage__light"><button type="button" id="lightBtn">☼ <span id="lightName">Lumière studio</span> ⌄</button>
+        <div class="menu__list" id="lightMenu" hidden></div>
+      </div>
+      <div class="stagewrap" id="stagewrap">
+        <div class="tilt" id="tiltRoot"><div class="tilt__in" id="tiltIn">
+          <div class="protect" id="protect" data-mode="none">
+            <div class="shell-body"></div><div class="shell-recess"></div><div class="shell-plastic"></div>
+            <div class="slab-label" id="slabLabel"><div><b id="slabLabelTitle">2026 PRISME</b><span id="slabLabelSub">HOLO · 001</span></div><div class="grade"><span id="slabLabelGrade">10</span><small id="slabLabelMention">GEM MINT</small></div></div>
+            <div class="card" id="card">
+              <div class="card__flip" id="flip">
+                <div class="core"></div>
+                <div class="face front"><canvas id="gl" aria-label="Recto de la carte"></canvas><div class="card__edge"></div></div>
+                <div class="face back"><canvas id="glBack" aria-label="Verso de la carte"></canvas><div class="card__edge"></div></div>
+              </div>
+              <svg class="marks" id="marksSvg" aria-hidden="true"></svg>
+            </div>
+          </div>
+          <div class="binder" id="binder" hidden></div>
+          <canvas class="scene-canvas" id="sceneCanvas" hidden aria-label="Aperçu du produit"></canvas>
+        </div></div>
+        <div class="pack-scene" id="packScene" hidden><div class="pack-obj" id="packObj"></div><div class="pack-caption" id="packCaption"></div></div>
+      </div>
+      <div class="brush-cursor" id="brushCursor"></div>
+      <span class="stage__info" id="dims"></span>
+      <span class="stage__hint" id="hint">Glisser pour incliner · Molette pour zoomer</span>
+    </div>
+    <div class="tools">
+      <div class="angle"><button type="button" id="angPrev" aria-label="Angle précédent">‹</button><span id="angName">De face</span><button type="button" id="angNext" aria-label="Angle suivant">›</button></div>
+      <button type="button" class="link-btn" id="flipBtn">⟳ Retourner</button>
+      <label class="check" id="marksLbl"><input type="checkbox" id="marks"> Repères d'impression</label>
+      <span class="spacer"></span>
+      <div class="zoombar"><button type="button" id="panMode" title="Déplacer (ou maintenir Espace)" aria-pressed="false">✋</button><span style="width:1px;height:18px;background:var(--line-2)"></span><button type="button" id="zoomOut" title="Zoom arrière">−</button><output id="zoomOutp">100 %</output><button type="button" id="zoomIn" title="Zoom avant">+</button><button type="button" id="zoomFit" title="Ajuster">⛶</button></div>
+    </div>
+    <div class="views" id="viewsRow">
+      <button type="button" data-view="0" aria-pressed="true">☼ Rendu</button>
+      <button type="button" data-view="1" aria-pressed="false">▣ Image seule</button>
+      <button type="button" data-view="9" aria-pressed="false">◐ Masque de finition</button>
+      <button type="button" data-view="4" aria-pressed="false">Relief</button>
+      <button type="button" data-view="7" aria-pressed="false">Sujet détecté</button>
+    </div>
+  </div>
+
+  <footer class="foot"><span id="saveState">Enregistré localement</span><label class="link-btn" for="loadProject">Ouvrir un projet</label></footer>
+</div>
+<div class="capture" id="captureBox" hidden><div class="capture__box"><img id="captureImg" alt="Capture du rendu"><p class="note">Clic droit ou appui long sur l'image pour l'enregistrer.</p><button type="button" class="btn" id="captureClose">Fermer</button></div></div>
+<div class="toast" id="toast" hidden></div>
