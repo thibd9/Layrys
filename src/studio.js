@@ -29,8 +29,8 @@
     ["duo", "Recto et verso", "La même carte, face et dos côte à côte", 8, "multi"],
     ["deck", "Formation du deck", "Éparpillées sur la table, les cartes se rassemblent en pile", 9, "deck"],
     ["shuffle", "Mélange", "Coupe en deux, les cartes tombent en alternance, puis tout se resserre", 9, "deck"],
-    ["deal", "Distribution", "Cinq cartes distribuées face cachée, puis retournées une à une", 10, "deck"],
-    ["ribbon", "Ruban", "Le deck s'étale en arc, une vague le parcourt, puis il se referme", 9, "deck"],
+    ["deal", "Distribution", "Trois cartes distribuées face cachée, puis retournées une à une", 10, "deck"],
+    ["ribbon", "Ruban", "Le deck s'étale en arc, se resserre et se rouvre, puis se referme", 9, "deck"],
   ];
   const ST_BACKS = [["dark", "Studio sombre", "#2c2824", "#0b0a09"], ["warm", "Nuit ambrée", "#5c2609", "#1a0a03"], ["blue", "Nuit bleue", "#1c2c50", "#060a15"], ["violet", "Velours violet", "#3d1d58", "#0d0616"], ["green", "Vert profond", "#12402f", "#04120c"], ["light", "Cyclo clair", "#f5f2ec", "#cdc7b9"], ["auto", "Couleur de la carte", "", ""], ["custom", "Personnalisé", "", ""]];
   const ST_FLOORS = [["none", "Aucun"], ["gloss", "Brillant"], ["matte", "Mat"], ["mat", "Tapis de jeu"]];
@@ -83,13 +83,22 @@
   /* the cards on stage, as indexes in the series: the ones the user picked, in the order picked; without a choice, the whole series from the displayed card on */
   function stChosen() { const n = project.cards.length, cur = project.cardIndex, idx = ST.cards.map(id => project.cards.findIndex(c => c.id === id)).filter(i => i >= 0); if (idx.length) return idx; const all = []; for (let k = 0; k < n; k++) all.push((cur + k) % n); return all; }
   function stStep(t) { if (!(ST.seqOn && ST.seq.length)) return 0; const steps = stSeqSteps(); const i = steps.findIndex(s => t < s.b); return i < 0 ? steps.length - 1 : i; }
+  /* Scattered layout of the "gather" scene, worked out once per number of cards: places on a ring that leaves the middle free for the pile,
+     resting height of each card (how many cards lie under it) and the order in which they leave: the ones on top first, as a hand would take them. */
+  function stScatter(N) {
+    if (ST.scat && ST.scat.n === N) return ST.scat; const x = [], y = [], roll = [], lvl = [];
+    for (let k = 0; k < N; k++) { const ph = k * 2.399 + 0.7, r0 = 1.32 + 0.5 * stHash(k + 1); x.push(Math.cos(ph) * r0); y.push(Math.sin(ph) * r0 * 0.95); roll.push((stHash(k + 31) - 0.5) * 2.6); let L = 0; for (let j = 0; j < k; j++) if (Math.hypot(x[k] - x[j], y[k] - y[j]) < 1.23) L = Math.max(L, lvl[j] + 1); lvl.push(L); }
+    const order = [...Array(N).keys()].sort((i, j) => lvl[j] - lvl[i] || i - j), rank = []; order.forEach((k, r) => { rank[k] = r; }); ST.scat = { n: N, x, y, roll, lvl, rank }; return ST.scat;
+  }
   /* What is on stage at time t. One card, or a group: grp = orientation and place of the whole group (a rigid block), inst = the cards inside it.
-     Inside a group the cards keep the same orientation and differ only by their place, their in-plane turn (roll) and their rank in the stack (z, by thickness):
-     parallel planes cannot cross. A card turns over (yaw) only when it is lifted clear of the others. ext = half width and half height to frame; table = lying on the floor;
+     Inside a group the cards keep the same orientation and differ only by their place, their in-plane turn (roll) and their height (z):
+     parallel planes cannot cross, and every scene is laid out so that two cards never share a height where they overlap.
+     A card turns over (yaw) only alone, lifted, with nothing above or beside it within its reach.
+     ext = half width and half height to frame; table = lying on the floor; stack = cards lie on one another (they cast shadows on those beneath);
      zoomK = how much the camera has moved in. On the table, x runs to the right, y away from the camera, z up. */
   function stScene(t) {
     const cur = project.cardIndex, id = ST.seqOn && ST.seq.length ? "" : ST.anim, a = aspect(), grp = { yaw: 0, pitch: 0, x: 0, y: 0, z: 0 }, ch = stChosen(), lead = ST.cards.length ? ch[0] : cur;
-    if (!id || !stMulti(id)) return { inst: [{ ci: ST.rotate && ch.length > 1 ? ch[(ST.lap + stStep(t)) % ch.length] : lead, p: stPoseAt(t) }], grp, ext: null, single: true, table: false, zoomK: 1 };
+    if (!id || !stMulti(id)) return { inst: [{ ci: ST.rotate && ch.length > 1 ? ch[(ST.lap + stStep(t)) % ch.length] : lead, p: stPoseAt(t) }], grp, ext: null, single: true, table: false, stack: false, zoomK: 1 };
     const cap = { fan: 13, parade: 12, cascade: 9, duo: 2 }[id] || 24, N = id === "duo" ? 2 : Math.max(2, Math.min(cap, ST.count)), ci = k => id === "duo" ? lead : ch[k % ch.length], inst = [], mid = (N - 1) / 2, thk = ST_THK; let ext = { w: 1, h: 0.7 }, table = false, zoomK = 1;
     if (id === "deck" || id === "shuffle" || id === "deal" || id === "ribbon") { table = true; grp.pitch = -Math.PI / 2; grp.y = ST_FLOOR_Y + 0.004; }
     for (let k = 0; k < N; k++) { const p = stP0(), f = k - mid, h1 = stHash(k + 1), h2 = stHash(k + 31);
@@ -99,40 +108,43 @@
         p.roll = -ang; p.x = Math.sin(ang) * L; p.y = Math.cos(ang) * L - L - 0.03; p.z = k * thk * 1.6; grp.yaw = 0.18 * Math.sin(t * TAU) * stSeg(t, 0.2, 0.45); grp.pitch = 0.05; stSweep(p, t, 0.44 + k * 0.02, 0.76 + k * 0.02); ext = { w: Math.sin(step * mid) * L + a * 0.62, h: 0.82 };
       } else if (id === "parade") { const Rr = Math.max(0.95, N * 0.27), ph = -t * TAU + k * TAU / N; p.x = Math.sin(ph) * Rr; p.z = Math.cos(ph) * Rr - Rr; p.yaw = ph * 0.62; p.y = 0.02 * Math.sin(t * TAU * 2 + k); ext = { w: Rr + a * 0.3, h: 0.66 };
       } else if (id === "cascade") {
-        /* the cards drop into a row one after another, each with a small bounce; then a wave runs along the row */
-        const t0 = k * (0.42 / N), u = stSeg(t, t0 - 0.14, t0 + 0.04), sp = Math.min(0.5, 1.9 / N), w = stSeg(t, 0.72, 0.94); /* the first card is already falling when the film starts */
+        /* the cards drop into a row one after another, each with a small bounce; then a wave runs along the row. The first card is already falling when the film starts */
+        const t0 = k * (0.42 / N), u = stSeg(t, t0 - 0.14, t0 + 0.04), sp = Math.min(0.5, 1.9 / N), w = stSeg(t, 0.72, 0.94);
         p.x = f * sp; p.y = 1.9 * (1 - u * u) * (u < 1 ? 1 : 0) + 0.07 * Math.sin(Math.PI * stSeg(t, t0 + 0.04, t0 + 0.14)) + 0.06 * stBeat(k / Math.max(1, N - 1), w * 1.4 - 0.2, 0.16) * (w > 0 && w < 1 ? 1 : 0);
         p.roll = (1 - u) * 0.45 * (k % 2 ? 1 : -1); p.z = k * 0.03; p.burst = k === N - 1 ? 0.45 * stBeat(t, t0 + 0.04, 0.04) : 0; grp.yaw = 0.12 * Math.sin(t * TAU) * stSeg(t, 0.6, 0.8); stSweep(p, t, 0.6 + k * 0.015, 0.76 + k * 0.015); ext = { w: mid * sp + a * 0.6, h: 0.66 };
       } else if (id === "duo") { const sg = k ? 1 : -1; p.x = sg * (a * 0.5 + 0.07); p.yaw = (k ? Math.PI : 0) - sg * (0.24 + 0.1 * Math.sin(t * TAU)); p.y = 0.025 * Math.sin(t * TAU + k * Math.PI); p.pitch = 0.04; if (!k) stSweep(p, t, 0.3, 0.7); ext = { w: a + 0.2, h: 0.66 };
       } else if (id === "deck") {
-        /* cards lie scattered on the table; one after another they slide to the middle, straighten and climb on the pile; a last tap squares the deck */
-        const ph = k * 2.399 + 0.7, r0 = 0.5 + 0.5 * h1, x0 = Math.cos(ph) * r0 * 1.2, y0 = Math.sin(ph) * r0 * 0.78, roll0 = (h2 - 0.5) * 2.6, t0 = 0.1 + k * (0.54 / N), u = stSeg(t, t0, t0 + 0.24), e = stIO(u), sq = stIO(stSeg(t, 0.82, 0.9)), bend = 0.09 * Math.sin(Math.PI * u);
-        p.x = x0 * (1 - e) + (h1 - 0.5) * 0.035 * e * (1 - sq) - y0 / r0 * bend; p.y = y0 * (1 - e) + (h2 - 0.5) * 0.035 * e * (1 - sq) + x0 / r0 * bend; p.roll = roll0 * (1 - stBack(u)) + (h1 - 0.5) * 0.12 * e * (1 - sq);
-        p.z = k * thk + 0.06 * Math.sin(Math.PI * u) + 0.03 * Math.sin(Math.PI * stSeg(t, 0.86, 0.94)); p.lx = Math.sin(t * TAU) * 0.6; p.burst = k ? 0 : 0.45 * stBeat(t, 0.9, 0.04); stSweep(p, t, 0.9, 0.995);
-        grp.yaw = -0.18 + 0.4 * stIO(t); zoomK = 1 + 1.1 * stIO(stSeg(t, 0.45, 0.95)); ext = { w: 1.7, h: 1.0 };
+        /* cards lie scattered around the middle; the ones on top leave first: each slides to the middle, straightens and lands on the pile from above; a last tap squares the deck.
+           A card that left earlier is always higher than the next one while they overlap, and lower once both are near the pile: they never meet */
+        const sc = stScatter(N), r = sc.rank[k], t0 = 0.08 + r * (0.54 / N), u = stSeg(t, t0, t0 + 0.22), e = stIO(u), sq = stIO(stSeg(t, 0.84, 0.91)), bend = 0.1 * Math.sin(Math.PI * u), rr0 = Math.hypot(sc.x[k], sc.y[k]);
+        p.x = sc.x[k] * (1 - e) + (h1 - 0.5) * 0.03 * e * (1 - sq) - sc.y[k] / rr0 * bend; p.y = sc.y[k] * (1 - e) + (h2 - 0.5) * 0.03 * e * (1 - sq) + sc.x[k] / rr0 * bend; p.roll = sc.roll[k] * (1 - stBack(u)) + (h1 - 0.5) * 0.1 * e * (1 - sq);
+        p.z = sc.lvl[k] * thk * (1 - e) + r * thk * e + 0.12 * Math.sin(Math.PI * u) + 0.025 * Math.sin(Math.PI * stSeg(t, 0.88, 0.95)); p.lx = Math.sin(t * TAU) * 0.6; p.burst = k ? 0 : 0.45 * stBeat(t, 0.91, 0.04); stSweep(p, t, 0.91, 0.995);
+        grp.yaw = -0.16 + 0.36 * stIO(t); zoomK = 1 + 1.7 * stIO(stSeg(t, 0.64, 0.97)); ext = { w: 2.45, h: 1.75 };
       } else if (id === "shuffle") {
-        /* riffle: the deck is cut in two, both halves are lifted, the cards fall in turn from the left and from the right so the halves interlace, then they are pushed into one */
+        /* riffle. The deck is cut: the top half is lifted over and set down beside the other, clear of it. Both halves are raised, brought together so that their ends overlap
+           (the right one half a thickness higher: the planes never coincide), the cards fall in turn from the left and from the right, then the two halves are pushed into one */
         const half = Math.ceil(N / 2), left = k < half, i = left ? k : k - half, m = left ? 2 * i : Math.min(N - 1, 2 * i + 1), side = left ? -1 : 1;
-        const cut = stIO(stSeg(t, 0.04, 0.18)), up = stIO(stSeg(t, 0.2, 0.28)), t0 = 0.3 + m * (0.42 / N), u = stSeg(t, t0, t0 + 0.07), push = stBack(stSeg(t, 0.78, 0.88)), tap = Math.sin(Math.PI * stSeg(t, 0.88, 0.96));
-        const zHeld = (left ? k : k + (i - k) * cut) * thk + (left ? 0 : thk * 0.5 * cut) + (left ? 0 : 0.14 * Math.sin(Math.PI * stSeg(t, 0.04, 0.18))) + 0.24 * up, zDown = m * thk;
-        p.x = side * 0.3 * cut * (1 - push); p.roll = -side * 0.07 * cut * (1 - push); p.z = zHeld + (zDown - zHeld) * u * u + 0.02 * Math.sin(Math.PI * stSeg(t, t0 + 0.07, t0 + 0.11)) + 0.03 * tap; p.lx = Math.sin(t * TAU) * 0.6;
-        p.burst = k ? 0 : 0.45 * stBeat(t, 0.9, 0.04); stSweep(p, t, 0.9, 0.995); grp.yaw = 0.14 - 0.3 * stIO(t); zoomK = 1 + 0.3 * stIO(stSeg(t, 0.74, 0.96)); ext = { w: 0.98, h: 0.78 };
+        const cutL = stSeg(t, 0.03, 0.16), cut = stIO(cutL), up = stIO(stSeg(t, 0.17, 0.25)), inn = stIO(stSeg(t, 0.26, 0.32)), t0 = 0.34 + m * (0.4 / N), u = stSeg(t, t0, t0 + 0.06), push = stBack(stSeg(t, 0.8, 0.9)), tap = Math.sin(Math.PI * stSeg(t, 0.9, 0.97));
+        const zHeld = (left ? k : k + (i - k) * cut) * thk + (left ? 0 : 0.2 * Math.sin(Math.PI * cutL)) + (0.26 + (left ? 0 : thk * 0.5)) * up, zDown = m * thk;
+        p.x = side * (0.38 * cut - 0.08 * inn) * (1 - push); p.roll = -side * 0.05 * cut * (1 - push); p.z = zHeld + (zDown - zHeld) * u * u + 0.018 * Math.sin(Math.PI * stSeg(t, t0 + 0.06, t0 + 0.1)) + 0.025 * tap; p.lx = Math.sin(t * TAU) * 0.6;
+        p.burst = k ? 0 : 0.45 * stBeat(t, 0.91, 0.04); stSweep(p, t, 0.92, 0.995); grp.yaw = 0.12 - 0.26 * stIO(t); zoomK = 1 + 0.3 * stIO(stSeg(t, 0.78, 0.97)); ext = { w: 0.98, h: 0.8 };
       } else if (id === "deal") {
-        /* the deck lies face down; the top cards are dealt to a row, still face down, then turned over one after another */
-        const M = Math.min(5, N - 1), j = N - 1 - k, dealt = j < M, sp = 0.44, dx = -0.66, dy = 0.66, droll = 0.14;
-        if (!dealt) { p.x = dx; p.y = dy; p.roll = droll; p.z = k * thk; p.yaw = Math.PI; }
-        else { const fj = j - (M - 1) / 2, rx = fj * sp + 0.1, ry = -0.44 - fj * fj * 0.025, rr = -fj * 0.07, t0 = 0.05 + j * (0.34 / M), u = stSeg(t, t0, t0 + 0.2), e = stOut(u), t1 = 0.56 + j * (0.26 / M), v = stSeg(t, t1, t1 + 0.15), fl = stIO(v);
-          p.x = dx + (rx - dx) * e; p.y = dy + (ry - dy) * e; p.roll = droll + (rr - droll) * e + Math.PI * (1 - e); p.z = k * thk * (1 - e) + j * thk * e + 0.08 * Math.sin(Math.PI * u) + 0.5 * Math.sin(Math.PI * v) + 2 * thk * Math.min(1, v * 20) * (v < 1 ? 1 : 0); p.yaw = Math.PI * (1 - fl); p.burst = j === M - 1 ? 0.5 * stBeat(t, t1 + 0.15, 0.04) : 0; stSweep(p, t, 0.9, 0.995); }
-        p.lx = Math.sin(t * TAU) * 0.6; grp.yaw = 0.1 * Math.sin(t * TAU * 0.5); zoomK = 1 + 0.12 * stIO(stSeg(t, 0.5, 0.95)); ext = { w: Math.max(1.1, (M - 1) / 2 * sp + a * 0.62), h: 1.0 };
+        /* the deck lies face down at the back; three cards are dealt to three separate places in front, still face down, then turned over one at a time.
+           The places do not overlap and only one card turns at once, lifted above its place: nothing is within its reach */
+        const M = Math.min(3, N - 1), j = N - 1 - k, dealt = j < M, dy = 0.6;
+        if (!dealt) { p.y = dy; p.z = k * thk; p.yaw = Math.PI; }
+        else { const sx = (j - (M - 1) / 2) * 0.78, sy = -0.55, t0 = 0.05 + j * 0.1, u = stSeg(t, t0, t0 + 0.2), e = stOut(u), t1 = 0.5 + j * 0.14, v = stSeg(t, t1, t1 + 0.13), fl = stIO(v);
+          p.x = sx * e; p.y = dy + (sy - dy) * e; p.roll = Math.PI * (1 - e) + (h1 - 0.5) * 0.08 * e * (1 - fl); p.z = k * thk * (1 - e) + 0.1 * Math.sin(Math.PI * u) + 0.52 * Math.sin(Math.PI * v); p.yaw = Math.PI * (1 - fl); p.burst = 0.4 * stBeat(t, t1 + 0.13, 0.03); stSweep(p, t, t1 + 0.14, t1 + 0.4); }
+        p.lx = Math.sin(t * TAU) * 0.6; grp.yaw = 0.08 * Math.sin(t * TAU * 0.5); zoomK = 1 + 0.1 * stIO(stSeg(t, 0.5, 0.95)); ext = { w: 0.78 + a * 0.5 + 0.2, h: 1.2 };
       } else {
-        /* ribbon: the deck spreads into an even arc, a wave runs along it and back, then the ribbon closes */
-        const sp = Math.min(0.24, 2.5 / N), s = stOut(stSeg(t, 0.06, 0.36)), gth = stIO(stSeg(t, 0.8, 0.94)), e = s * (1 - gth), w1 = stSeg(t, 0.42, 0.6), w2 = stSeg(t, 0.6, 0.78), pos = k / Math.max(1, N - 1), wave = (w1 > 0 && w1 < 1 ? stBeat(pos, w1 * 1.3 - 0.15, 0.1) : 0) + (w2 > 0 && w2 < 1 ? stBeat(pos, 1.15 - w2 * 1.3, 0.1) : 0);
-        p.x = f * sp * e; p.y = -Math.pow(f / (mid + 0.001), 2) * 0.14 * e; p.roll = -f / (mid + 0.001) * 0.32 * e; p.z = k * thk + 0.09 * wave + 0.03 * Math.sin(Math.PI * stSeg(t, 0.92, 0.99)); p.lx = Math.sin(t * TAU) * 0.6; stSweep(p, t, 0.38 + pos * 0.04, 0.5 + pos * 0.04);
+        /* ribbon: the deck spreads into an even arc, the ribbon closes up and opens again like a bellows, then it gathers. The cards only slide on one another */
+        const sp = Math.min(0.24, 2.5 / N), s = stOut(stSeg(t, 0.06, 0.34)), gth = stIO(stSeg(t, 0.8, 0.93)), bre = 1 - 0.42 * Math.pow(Math.sin(Math.PI * stSeg(t, 0.4, 0.76) * 2), 2), e = s * (1 - gth) * bre, pos = k / Math.max(1, N - 1);
+        p.x = f * sp * e; p.y = -Math.pow(f / (mid + 0.001), 2) * 0.14 * e; p.roll = -f / (mid + 0.001) * 0.32 * e; p.z = k * thk + 0.025 * Math.sin(Math.PI * stSeg(t, 0.93, 0.99)); p.lx = Math.sin(t * TAU) * 0.6; stSweep(p, t, 0.36 + pos * 0.05, 0.5 + pos * 0.05);
         grp.yaw = 0.08 * Math.sin(t * TAU); zoomK = 1 + 0.25 * stIO(stSeg(t, 0.82, 0.98)); ext = { w: mid * sp + a * 0.62, h: 0.82 };
       }
       if (ST.flip) { p.roll = -p.roll; p.x = -p.x; if (!table) p.yaw = -p.yaw; } inst.push({ ci: ci(k), p });
     }
-    if (ST.flip) grp.yaw = -grp.yaw; return { inst, grp, ext, single: false, table, zoomK };
+    if (ST.flip) grp.yaw = -grp.yaw; return { inst, grp, ext, single: false, table, stack: id !== "duo" && id !== "parade", zoomK };
   }
   /* 4 x 4 matrices, column major */
   const m4 = { mul: (a, b) => { const o = new Float32Array(16); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) o[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] + a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3]; return o; },
@@ -156,7 +168,7 @@
       " if(uSpot>0.){ float up=clamp((1.05-p.y)/2.1,0.,1.); float bw=.1+up*.42*uCardR.x*1.6; float beam=exp(-pow((p.x-uCard.x)/bw,2.))*smoothstep(uFloor-.02,uFloor+.3,p.y)*(.35+.65*up); col+=uHaloCol*uSpot*beam*.34; }\n" +
       " col*=mix(1., smoothstep(1.9,.45,length(p*vec2(.9,1.))), uVig); col+=(h21(gl_FragCoord.xy)-.5)/255.; gl_FragColor=vec4(col,1.); }", "aPos");
     const card = prog("attribute vec2 aPos; uniform mat4 uMVP,uM; varying vec2 vUv; varying float vWy; void main(){ vUv=aPos+.5; vWy=(uM*vec4(aPos,0.,1.)).y; gl_Position=uMVP*vec4(aPos,0.,1.); }",
-      "precision mediump float; varying vec2 vUv; varying float vWy; uniform sampler2D uTex; uniform vec2 uSize,uCardSize; uniform float uRad,uAlpha,uFade,uShade,uSweep,uSweepAmt,uClip,uClipY,uTime,uGlint; uniform int uMode; uniform vec3 uCol,uPool,uGlow,uFar; uniform vec2 uSoft;\n" +
+      "precision mediump float; varying vec2 vUv; varying float vWy; uniform sampler2D uTex; uniform vec2 uSize,uCardSize; uniform float uRad,uAlpha,uFade,uShade,uSweep,uSweepAmt,uClip,uClipY,uTime,uGlint; uniform int uMode; uniform vec3 uCol,uPool,uGlow,uFar; uniform vec2 uSoft,uLit;\n" +
       "float rr(vec2 p, vec2 hf, float r){ vec2 d=abs(p)-(hf-vec2(r)); return length(max(d,0.))+min(max(d.x,d.y),0.)-r; }\n" +
       "float h21(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }\n" +
       "void main(){ if(uMode==2){ vec2 q=(vUv-.5)*2.; float r=dot(q,q); gl_FragColor=vec4(uCol, exp(-r*3.4)*(1.-smoothstep(.75,1.,r))*uAlpha); return; }\n" +
@@ -165,9 +177,10 @@
       " if(uClip*(vWy-uClipY)<0.) discard;\n" +
       " if(uMode==1){ gl_FragColor=vec4(uCol*uShade,uAlpha); return; }\n" +
       " if(uMode==4){ vec4 t=texture2D(uTex,vUv); gl_FragColor=vec4(t.rgb, t.a*uAlpha); return; }\n" +
-      " if(uMode==3){ float sd=max(rr((vUv-.5)*uSize, uCardSize*.5, uRad),0.); float gw=exp(-sd*22.)*(1.-smoothstep(.07,.145,sd))*smoothstep(uSoft.x,uSoft.y,vWy); gl_FragColor=vec4(uCol*gw*uAlpha,0.); return; }\n" +
+      " if(uMode==6){ float sd=rr((vUv-.5)*uSize, uCardSize*.5, uRad); gl_FragColor=vec4(0.,0.,0.,(1.-smoothstep(-uFade*.5,uFade,sd))*uAlpha); return; }\n" +
+      " if(uMode==3){ float sd=max(rr((vUv-.5)*uSize, uCardSize*.5, uRad),0.); float gw=exp(-sd*34.)*(1.-smoothstep(.07,.145,sd))*smoothstep(uSoft.x,uSoft.y,vWy); gl_FragColor=vec4(uCol*gw*uAlpha,0.); return; }\n" +
       " float sd=rr((vUv-.5)*uSize, uSize*.5, uRad); float a=1.-smoothstep(-.004,.0012,sd); if(a<.01) discard;\n" +
-      " vec3 c=texture2D(uTex,vUv).rgb*uShade; float s=(vUv.x*.8+(1.-vUv.y)*.38)-uSweep; c+=vec3(1.,.97,.9)*uSweepAmt*exp(-s*s*34.);\n" +
+      " vec3 c=texture2D(uTex,vUv).rgb*uShade; c*=1.-.09*smoothstep(-.03,0.,sd); vec2 ld=(vUv-uLit)*vec2(1.,1.25); float sh=exp(-dot(ld,ld)*2.3); c=c*(.94+.1*sh)+.022*sh; float s=(vUv.x*.8+(1.-vUv.y)*.38)-uSweep; c+=vec3(1.,.97,.9)*uSweepAmt*exp(-s*s*34.);\n" +
       " if(uGlint>0.){ for(int i=0;i<7;i++){ float fi=float(i); vec2 gp=vec2(.12+.76*h21(vec2(fi,2.7)), .1+.8*h21(vec2(fi,8.3))); float tw=pow(max(0.,sin(uTime*(1.1+.5*h21(vec2(fi,4.1)))+fi*2.3+uShade*9.)),10.); vec2 dd=abs((vUv-gp)*uSize); float st=exp(-dd.x*70.)*exp(-dd.y*420.)+exp(-dd.y*70.)*exp(-dd.x*420.)+exp(-dot(dd,dd)*1800.)*.8; c+=vec3(1.,.98,.92)*st*tw*uGlint; } }\n" +
       " a*=uAlpha*mix(1., pow(1.-vUv.y,2.4), uFade); gl_FragColor=vec4(c,a); }", "aPos");
     const dust = prog("attribute vec3 aSeed; uniform mat4 uVP; uniform float uTime,uPx,uAmt; varying float vA;\n" +
@@ -217,7 +230,7 @@
     /* camera: a card is one unit tall; the framing follows the format, the scene and the two camera sliders. A deck on the table is watched from above */
     const frac = asp > 1.2 ? 0.7 : asp < 0.7 ? 0.5 : asp < 0.9 ? 0.6 : 0.64, fov = 0.5, th = Math.tan(fov / 2); let D = 1 / (2 * frac * th); if (sc.ext) D = Math.max(D, (sc.ext.w + 0.1) / (th * asp), (sc.ext.h + 0.12) / th); D /= ST.zoom * (sc.zoomK || 1);
     const camDeg = sc.table ? Math.max(ST.cam + 30, 36) : ST.cam, cam = camDeg * Math.PI / 180, look = sc.table ? floorY + 0.08 : -0.02;
-    const P = m4.persp(fov, asp, 0.1, 80), V = m4.chain(m4.tr(0, 0, -D), m4.rx(cam), m4.tr(0, -look, 0)), VP = m4.mul(P, V), d = fmtDims(), rad = d.r / d.h;
+    const P = m4.persp(fov, asp, Math.max(0.3, D * 0.3), D * 5 + 8), V = m4.chain(m4.tr(0, 0, -D), m4.rx(cam), m4.tr(0, -look, 0)), VP = m4.mul(P, V), d = fmtDims(), rad = d.r / d.h;
     const G = m4.chain(m4.tr(sc.grp.x, sc.grp.y, sc.grp.z), m4.ry(sc.grp.yaw), m4.rx(sc.grp.pitch));
     /* each card: its matrix in the world, its centre, the face that looks at the camera and how that face is turned */
     for (const it of insts) { const p = it.p; it.M = m4.chain(G, m4.tr(p.x, p.y, p.z), m4.ry(p.yaw), m4.rx(p.pitch), m4.rz(p.roll)); it.w = m4.pt(it.M, 0, 0, 0); const MV = m4.mul(V, it.M), vz = m4.pt(MV, 0, 0, 0); let nx = MV[8], ny = MV[9], nz = MV[10]; it.front = -(nx * vz[0] + ny * vz[1] + nz * vz[2]) >= 0; if (!it.front) { nx = -nx; ny = -ny; nz = -nz; } it.nx = nx; it.ny = ny; it.shade = 0.72 + 0.28 * Math.max(0, nz); it.depth = vz[2];
@@ -237,28 +250,33 @@
     const normal = () => gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.enable(gl.BLEND); normal(); gl.useProgram(g.card.p); const u = g.card.u; gl.uniform1i(u.uTex, 0); gl.activeTexture(gl.TEXTURE0); gl.uniform1f(u.uTime, ST.clock); gl.uniform1f(u.uClip, 0); gl.uniform1f(u.uClipY, floorY); gl.uniform1f(u.uGlint, 0); gl.uniformMatrix4fv(u.uM, false, m4.id());
     /* clip: 1 keeps what is above the floor, -1 what is below (the reflection); a card that crosses the floor rises out of it */
-    const face = (it, M, alpha, fade, clip, sw) => { const e = g.faces.get(it.ci); if (!e) return; const Mf = m4.chain(M, it.front ? m4.id() : m4.ry(Math.PI), m4.sc(a, 1, 1)); gl.bindTexture(gl.TEXTURE_2D, it.front ? e.f : e.b); gl.uniformMatrix4fv(u.uMVP, false, m4.mul(VP, Mf)); gl.uniformMatrix4fv(u.uM, false, Mf); gl.uniform1f(u.uClip, floorOn && !sc.table ? clip : 0); /* cards lying on the table are never cut by it */ gl.uniform1i(u.uMode, 0); gl.uniform2f(u.uSize, a, 1); gl.uniform1f(u.uRad, rad); gl.uniform1f(u.uAlpha, alpha); gl.uniform1f(u.uFade, fade); gl.uniform1f(u.uShade, it.shade); gl.uniform1f(u.uSweep, sw); gl.uniform1f(u.uSweepAmt, fx.sweep && sw > -0.9 && it.front ? 0.5 : 0); gl.uniform1f(u.uGlint, fx.glint && it.front && fade === 0 && alpha === 1 ? 0.9 * amt : 0); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); gl.uniform1f(u.uClip, 0); gl.uniform1f(u.uGlint, 0); };
-    const far = [...insts].sort((x, y) => x.depth - y.depth);
+    const face = (it, M, alpha, fade, clip, sw) => { const e = g.faces.get(it.ci); if (!e) return; const Mf = m4.chain(M, it.front ? m4.id() : m4.ry(Math.PI), m4.sc(a, 1, 1)); gl.bindTexture(gl.TEXTURE_2D, it.front ? e.f : e.b); gl.uniformMatrix4fv(u.uMVP, false, m4.mul(VP, Mf)); gl.uniformMatrix4fv(u.uM, false, Mf); gl.uniform1f(u.uClip, floorOn && !sc.table ? clip : 0); /* cards lying on the table are never cut by it */ gl.uniform1i(u.uMode, 0); gl.uniform2f(u.uSize, a, 1); gl.uniform1f(u.uRad, rad); gl.uniform1f(u.uAlpha, alpha); gl.uniform1f(u.uFade, fade); gl.uniform1f(u.uShade, it.shade); gl.uniform2f(u.uLit, 0.5 - it.nx * 0.9, 0.62 - it.ny * 0.9); gl.uniform1f(u.uSweep, sw); gl.uniform1f(u.uSweepAmt, fx.sweep && sw > -0.9 && it.front ? 0.5 : 0); gl.uniform1f(u.uGlint, fx.glint && it.front && fade === 0 && alpha === 1 ? 0.9 * amt : 0); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); gl.uniform1f(u.uClip, 0); gl.uniform1f(u.uGlint, 0); };
+    const far = [...insts].sort(sc.stack ? (x, y) => x.p.z - y.p.z || x.depth - y.depth : (x, y) => x.depth - y.depth); /* a stack is drawn from the bottom up, so each shadow falls on what is already there */
     if (floorOn) {
       /* the floor: a plane that fades into the backdrop, lit by a pool of light under the cards */
       const kind = ST.floor, size = 14, col = kind === "gloss" ? [c2[0] * 0.5 + c1[0] * 0.22, c2[1] * 0.5 + c1[1] * 0.22, c2[2] * 0.5 + c1[2] * 0.22] : kind === "mat" ? [c1[0] * 0.82 + 0.03, c1[1] * 0.82 + 0.03, c1[2] * 0.82 + 0.03] : [c1[0] * 0.7 + 0.02, c1[1] * 0.7 + 0.02, c1[2] * 0.7 + 0.02];
       gl.uniformMatrix4fv(u.uMVP, false, m4.chain(VP, m4.tr(0, floorY, 0), m4.rx(-Math.PI / 2), m4.sc(size, size, 1))); gl.uniform1i(u.uMode, 5); gl.uniform2f(u.uSize, size, size); gl.uniform3fv(u.uCol, lightBg ? [col[0] * 1.02, col[1] * 1.02, col[2] * 1.02] : col); gl.uniform3f(u.uPool, lead[0], -lead[2], fx.spot ? 0.5 : 0.22); { const hy = proj(0, floorY, -30)[1], k = Math.min(1, Math.max(0, Math.abs(hy - 0.12) / 1.55)), e = k * k * (3 - 2 * k); gl.uniform3f(u.uFar, c1[0] + (c2[0] - c1[0]) * e, c1[1] + (c2[1] - c1[1]) * e, c1[2] + (c2[2] - c1[2]) * e); } { const ac = fx.rim ? stAura(insts[0].ci, haloCol) : haloCol, gk = ((fx.rim ? 0.22 : 0) + (fx.halo ? 0.1 : 0)) * amt * (lightBg ? 0.4 : 1) + burst * 0.25; gl.uniform3f(u.uGlow, ac[0] * gk, ac[1] * gk, ac[2] * gk); } /* the floor takes the colour of the halo and of the aura: the light does not stop at the horizon */ gl.uniform1f(u.uFade, kind === "mat" ? 1 : 0); gl.uniform1f(u.uAlpha, kind === "gloss" ? 0.8 : 0.95); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       /* shadows: a wide soft one and a tight contact one under each card or pile, lighter as the card rises */
       if (fx.shadow) { const done = []; for (const it of far) { const lift = it.minY - floorY; if (lift > 1.7 || lift < -0.6) continue; if (done.some(q => Math.abs(q[0] - it.fp[0]) < 0.12 && Math.abs(q[1] - it.fp[1]) < 0.12)) continue; done.push(it.fp); const up = Math.max(0, lift); gl.uniform1i(u.uMode, 2); gl.uniform3f(u.uCol, 0, 0, 0);
-        for (const [pad, al, kf] of [[0.55, 0.36, 2.2], [0.14, 0.5, 9]]) { gl.uniformMatrix4fv(u.uMVP, false, m4.chain(VP, m4.tr(it.fp[0], floorY + 0.001, it.fp[1]), m4.rx(-Math.PI / 2), m4.sc((it.fp[2] + pad) * (1 + up * 0.5), (Math.max(it.fp[3], 0.12) + pad) * (1 + up * 0.5), 1))); gl.uniform1f(u.uAlpha, al * (lightBg ? 0.55 : 1) / (1 + up * kf)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); } } }
+        for (const [pad, al, kf] of sc.table ? [[0.6, 0.26, 2.2]] : [[0.55, 0.36, 2.2], [0.14, 0.5, 9]]) { gl.uniformMatrix4fv(u.uMVP, false, m4.chain(VP, m4.tr(it.fp[0], floorY + 0.001, it.fp[1]), m4.rx(-Math.PI / 2), m4.sc((it.fp[2] + pad) * (1 + up * 0.5), (Math.max(it.fp[3], 0.12) + pad) * (1 + up * 0.5), 1))); gl.uniform1f(u.uAlpha, al * (lightBg ? 0.55 : 1) / (1 + up * kf)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); } } }
       /* reflection, on a glossy floor only: each card mirrored under the floor, fading away from it */
       if (kind === "gloss") { const mir = m4.chain(m4.tr(0, 2 * floorY, 0), m4.sc(1, -1, 1)); for (const it of far) face(it, m4.mul(mir, it.M), lightBg ? 0.2 : 0.34, 1, -1, it.p.sw); }
     }
     /* aura: a glow that hugs the outline of each card, in the colour of its rarity. It fades out towards the floor instead of being cut by it, and a glossy floor mirrors it */
     if (fx.rim) { gl.blendFunc(gl.ONE, gl.ONE); const m = 0.3, mir = m4.chain(m4.tr(0, 2 * floorY, 0), m4.sc(1, -1, 1)), passes = floorOn && ST.floor === "gloss" && !sc.table ? [1, 0] : [0]; gl.uniform1i(u.uMode, 3); gl.uniform2f(u.uSize, a + m, 1 + m); gl.uniform2f(u.uCardSize, a, 1); gl.uniform1f(u.uRad, rad);
-      for (const it of far) { const k = (lightBg ? 0.34 : 0.66) * amt * it.shade / (sc.single ? 1 : 1.6); gl.uniform3fv(u.uCol, stAura(it.ci, haloCol));
+      for (const it of far) { const k = (lightBg ? 0.26 : 0.42) * amt * it.shade / (sc.single ? 1 : 1.6); /* a thin rim of light, not a neon tube */ gl.uniform3fv(u.uCol, stAura(it.ci, haloCol));
         for (const refl of passes) { const Mr = m4.mul(refl ? m4.mul(mir, it.M) : it.M, m4.sc(a + m, 1 + m, 1)); gl.uniformMatrix4fv(u.uMVP, false, m4.mul(VP, Mr)); gl.uniformMatrix4fv(u.uM, false, Mr); gl.uniform1f(u.uClip, refl ? -1 : 0); if (!floorOn || sc.table) gl.uniform2f(u.uSoft, -99, -98); else if (refl) gl.uniform2f(u.uSoft, floorY - 0.45, floorY); else gl.uniform2f(u.uSoft, floorY - 0.22, floorY + 0.03); gl.uniform1f(u.uAlpha, k * (refl ? 0.4 : 1)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); } }
       gl.uniform1f(u.uClip, 0); normal(); }
     /* motion trail: where the card was a few hundredths of a second ago */
     if (fx.trail && sc.single) { const it = insts[0]; for (let k = 3; k >= 1; k--) { const tt = t - k * 0.03 / ST.dur; if (tt < 0) continue; const q = stPoseAt(tt); face(it, m4.chain(G, m4.tr(q.x, q.y, q.z), m4.ry(q.yaw), m4.rx(q.pitch), m4.rz(q.roll)), [0, 0.2, 0.12, 0.07][k], 0, 1, q.sw); } }
     /* the cards: visible face, then the four edges of the board */
     gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.clear(gl.DEPTH_BUFFER_BIT);
-    for (const it of far) { face(it, it.M, 1, 0, 1, it.p.sw); const thk = ST_THK * 0.8; gl.uniform1i(u.uMode, 1); gl.uniform1f(u.uAlpha, 1); gl.uniform3f(u.uCol, 0.9, 0.88, 0.83); gl.uniform1f(u.uShade, 0.62 + 0.38 * (1 - (it.shade - 0.72) / 0.28)); /* the edge of the board catches the light as the card turns away */ gl.uniform1f(u.uClip, floorOn && !sc.table ? 1 : 0);
+    for (const it of far) {
+      /* shadow of the card on what lies under it: the highest card beneath, or the table. The higher the card, the softer, lighter and further the shadow */
+      if (sc.stack && fx.shadow) { const p = it.p; let zb = sc.table ? -0.0006 : null; for (const q of insts) { if (q === it || q.p.z >= p.z - 1e-5) continue; if (Math.abs(q.p.x - p.x) < a * 0.96 && Math.abs(q.p.y - p.y) < 0.96) zb = Math.max(zb === null ? -1e9 : zb, q.p.z); }
+        if (zb !== null) { const hgt = Math.max(0, p.z - zb), soft = 0.016 + 0.2 * hgt, cw = Math.max(0.06, a * Math.abs(Math.cos(p.yaw))), mg = soft * 2.4, Ms = m4.chain(G, m4.tr(p.x + hgt * 0.14, p.y - hgt * 0.18, zb + 0.0011), m4.rz(p.roll), m4.sc(cw + mg, 1 + mg, 1));
+          gl.depthMask(false); gl.uniformMatrix4fv(u.uMVP, false, m4.mul(VP, Ms)); gl.uniform1f(u.uClip, 0); gl.uniform1i(u.uMode, 6); gl.uniform2f(u.uSize, cw + mg, 1 + mg); gl.uniform2f(u.uCardSize, cw, 1); gl.uniform1f(u.uRad, rad); gl.uniform1f(u.uFade, soft); gl.uniform1f(u.uAlpha, (lightBg ? 0.3 : 0.52) / (1 + hgt * 4)); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); gl.depthMask(true); } }
+      face(it, it.M, 1, 0, 1, it.p.sw); const thk = ST_THK * 0.8; gl.uniform1i(u.uMode, 1); gl.uniform1f(u.uAlpha, 1); gl.uniform3f(u.uCol, 0.9, 0.88, 0.83); gl.uniform1f(u.uShade, 0.62 + 0.38 * (1 - (it.shade - 0.72) / 0.28)); /* the edge of the board catches the light as the card turns away */ gl.uniform1f(u.uClip, floorOn && !sc.table ? 1 : 0);
       for (const sgn of [-1, 1]) { let Me = m4.chain(it.M, m4.tr(sgn * a / 2, 0, 0), m4.ry(Math.PI / 2), m4.sc(thk, 1 - 2 * rad, 1)); gl.uniformMatrix4fv(u.uMVP, false, m4.mul(VP, Me)); gl.uniformMatrix4fv(u.uM, false, Me); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); Me = m4.chain(it.M, m4.tr(0, sgn / 2, 0), m4.rx(Math.PI / 2), m4.sc(a - 2 * rad, thk, 1)); gl.uniformMatrix4fv(u.uMVP, false, m4.mul(VP, Me)); gl.uniformMatrix4fv(u.uM, false, Me); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); } gl.uniform1f(u.uClip, 0); }
     /* particles, hidden by the cards when they pass behind */
     if (fx.dust || burst > 0.02) { gl.depthMask(false); gl.blendFunc(gl.ONE, gl.ONE); gl.useProgram(g.dust.p); gl.bindBuffer(gl.ARRAY_BUFFER, g.pts); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0); gl.uniformMatrix4fv(g.dust.u.uVP, false, VP); gl.uniform1f(g.dust.u.uTime, ST.clock); gl.uniform1f(g.dust.u.uPx, H / 180); gl.uniform1f(g.dust.u.uAmt, (fx.dust ? (lightBg ? 0.35 : 0.8) * amt : 0) + burst * 0.9); gl.uniform3fv(g.dust.u.uCol, lightBg ? [0.5, 0.45, 0.35] : [1, 0.86, 0.62]); gl.drawArrays(gl.POINTS, 0, g.N); gl.depthMask(true); gl.bindBuffer(gl.ARRAY_BUFFER, g.quad); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0); }

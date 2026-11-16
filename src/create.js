@@ -10,7 +10,6 @@
   const crNum = v => String(+(+v).toFixed(1)).replace(".", ",");
   const crFind = name => project.front.layers.find(l => l.name === name + CR_TAG);
   const crLabel = l => l.name.endsWith(CR_TAG) ? l.name.slice(0, -CR_TAG.length) : l.name;
-  function renderHome() { const n = project.cards.length; $("#homeState").textContent = `Série en cours : « ${project.title || "Ma série"} », ${n} carte${n > 1 ? "s" : ""}. Ton travail est enregistré sur cet appareil.`; }
   function crRead() {
     Object.assign(CR, CR_DEF); const b = crFind("Bordure"), p = crFind("Fond des textes"), old = crFind("Cadre"), ty = crFind("Type");
     if (b) { CR.border = ["thin", "double", "ornate"].includes(b.frame.style) ? b.frame.style : "thin"; CR.bw = b.frame.width; CR.accent = b.frame.color; if (b.frame.inset > 0) { CR.pos = "in"; CR.gap = b.frame.inset; } CR.finish = CR_FIN.some(f => f[0] === b.presetId) ? b.presetId : "i-none"; }

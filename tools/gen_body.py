@@ -87,23 +87,27 @@ editor = clean(L(410, 438)).replace('<div><p class="kicker" style="margin:0">Éd
 plans = clean(L(291, 335))
 serie_p1 = clean(L(263, 271)); serie_p2 = clean(L(274, 283))
 
-T = '''<script>(function(){try{var d=document.documentElement,t=localStorage.getItem("layrys-theme")||"light",f=localStorage.getItem("layrys-font")||"";if(t==="dark"||t==="light")d.dataset.theme=t;if(f)d.dataset.font=f;}catch(e){}})();</script>
+T = '''<script>(function(){try{var d=document.documentElement,t=localStorage.getItem("layrys-theme")||"light",f=localStorage.getItem("layrys-font")||"";if(t==="dark"||t==="light")d.dataset.theme=t;if(f)d.dataset.font=f;if(localStorage.getItem("layrys-rail")==="min")d.dataset.rail="min";}catch(e){}})();</script>
 @@SPRITE@@
 <div class="app">
   <aside class="rail">
+    <button type="button" class="brand rail__brand" data-go="accueil" aria-label="Layrys, retour à l'accueil" title="Accueil">@@MARK@@@@WORD@@</button>
     <nav class="nav" aria-label="Pages">
       <button type="button" data-page="accueil" aria-pressed="false">[[home]]<span>Accueil</span></button>
+      <p class="nav__cap">Parcours</p>
       <div class="nav__flow" role="group" aria-label="Les étapes, dans l'ordre">
-        <button type="button" data-page="image" aria-pressed="false" title="Étape 1 : choisir et cadrer l'image">[[image]]<span>Illustration</span></button>
-        <button type="button" data-page="atelier" aria-pressed="true" title="Étape 2 : effets d'impression et leurs zones">[[atelier]]<span>Finitions</span></button>
-        <button type="button" data-page="serie" aria-pressed="false" title="Étape 3 : les cartes de la série">[[serie]]<span>Série</span></button>
-        <button type="button" data-page="maquettes" aria-pressed="false" title="Étape 4 : la carte en volume">[[cube]]<span>Maquettes</span></button>
-        <button type="button" data-page="plans" aria-pressed="false" title="Étape 5 : fichiers pour l'imprimeur">[[scissors]]<span>Impression</span></button>
+        <button type="button" data-page="image" aria-pressed="false" title="Étape 1 : choisir et cadrer l'image">[[image]]<span>Illustration</span><small>Choisir et cadrer l'image</small></button>
+        <button type="button" data-page="atelier" aria-pressed="true" title="Étape 2 : effets d'impression et leurs zones">[[atelier]]<span>Finitions</span><small>Effets d'impression et zones</small></button>
+        <button type="button" data-page="serie" aria-pressed="false" title="Étape 3 : les cartes de la série">[[serie]]<span>Série</span><small>Cartes, raretés, tirages</small></button>
+        <button type="button" data-page="maquettes" aria-pressed="false" title="Étape 4 : la carte en volume">[[cube]]<span>Maquettes</span><small>La carte en volume</small></button>
+        <button type="button" data-page="plans" aria-pressed="false" title="Étape 5 : fichiers pour l'imprimeur">[[scissors]]<span>Impression</span><small>Fichiers pour l'imprimeur</small></button>
       </div>
-      <button type="button" data-page="studio" aria-pressed="false" title="Filmer la carte : mouvements, décors, effets, vidéo">[[camera]]<span>Studio</span></button>
-      <button type="button" data-page="creation" aria-pressed="false" title="Option : ajouter un cadre, un nom, des textes">[[edit]]<span>Cadre et texte</span></button>
-      <button type="button" id="tourBtn" data-tour title="Guide pas à pas : fabrique une carte avec moi">[[book]]<span>Guide</span></button>
+      <p class="nav__cap">Outils</p>
+      <button type="button" data-page="studio" aria-pressed="false" title="Filmer la carte : mouvements, décors, effets, vidéo">[[camera]]<span>Studio</span><small>Filmer tes cartes</small></button>
+      <button type="button" data-page="creation" aria-pressed="false" title="Option : ajouter un cadre, un nom, des textes">[[edit]]<span>Cadre et texte</span><small>En option</small></button>
+      <button type="button" id="tourBtn" data-tour title="Guide pas à pas : fabrique une carte avec moi">[[book]]<span>Guide</span><small>Pas à pas, avec toi</small></button>
     </nav>
+    <button type="button" class="rail__proj" data-go="serie" title="Ouvrir la série"><span class="rail__thumb" id="railThumb"></span><span class="rail__pt"><b id="railTitle">Ma série</b><small id="railMeta"></small></span></button>
     <div class="rail__foot">
       <div class="menu"><button type="button" id="lookBtn" aria-label="Apparence : thème et police" title="Apparence">[[palette]]</button>
         <div class="pop" id="lookPop" hidden>
@@ -119,6 +123,7 @@ T = '''<script>(function(){try{var d=document.documentElement,t=localStorage.get
 @@HELP@@
         </div>
       </div>
+      <button type="button" id="railToggle" aria-label="Réduire le menu" title="Réduire le menu">[[left]]</button>
     </div>
   </aside>
 
@@ -154,17 +159,41 @@ T = '''<script>(function(){try{var d=document.documentElement,t=localStorage.get
   <!-- ===== Accueil ===== -->
   <section class="page" id="page-accueil" hidden>
     <div class="home">
-      <div class="home__head"><h2>Que veux-tu faire ?</h2><p class="note" id="homeState"></p></div>
-      <button type="button" class="home__guide" data-tour><span class="guideav">@@MARK@@</span><span class="home__gt"><b>Première carte ? Suis le guide</b><span>Je t'accompagne pas à pas, de l'image au fichier d'impression. Tu manipules, je t'explique.</span></span><em>Lancer le guide [[right.s]]</em></button>
-      <div class="home__grid">
-        <button type="button" class="home__tile" data-go="image">[[image]]<i>Étape 1</i><b>Choisir l'illustration</b><span>Importe ton image ou prends un exemple, puis cadre-la sur la carte.</span></button>
-        <button type="button" class="home__tile" data-go="atelier">[[atelier]]<i>Étape 2</i><b>Appliquer des finitions</b><span>Holo, dorure, vernis, relief : règle les effets et leurs zones.</span></button>
-        <button type="button" class="home__tile" data-go="serie">[[serie]]<i>Étape 3</i><b>Ma liste de cartes</b><span>Toutes les cartes de la série, leurs raretés et les tirages.</span></button>
-        <button type="button" class="home__tile" data-go="maquettes">[[cube]]<i>Étape 4</i><b>Voir en maquette</b><span>Booster, display, slab, cadre : ta carte en volume.</span></button>
-        <button type="button" class="home__tile" data-go="plans">[[scissors]]<i>Étape 5</i><b>Préparer l'impression</b><span>Plans de découpe, contrôle et fichiers pour l'imprimeur.</span></button>
-        <button type="button" class="home__tile" data-go="studio">[[camera]]<i>Présentation</i><b>Filmer la carte au Studio</b><span>Mouvements, décors et effets : une vidéo prête à partager.</span></button>
+      <div class="hero" id="hero">
+        <div class="hero__txt">
+          <p class="hero__eye">Série en cours</p>
+          <h2 class="hero__title" id="homeTitle">Ma série</h2>
+          <p class="hero__meta" id="homeState"></p>
+          <div class="hero__acts">
+            <button type="button" class="btn primary big" id="homeGo" data-go="image"><span id="homeGoT">Commencer par l'illustration</span> [[right.s]]</button>
+            <button type="button" class="btn big hero__alt" data-tour>[[book.s]] Suivre le guide pas à pas</button>
+          </div>
+          <p class="hero__hint">Passe le pointeur sur la carte : ses finitions réagissent à la lumière.</p>
+        </div>
+        <div class="hero__stage" aria-hidden="true">
+          <div class="hero__cards" id="heroCards">
+            <span class="hero__card hero__card--back" id="heroBack"></span>
+            <span class="hero__card hero__card--mid" id="heroMid"></span>
+            <canvas class="hero__card hero__card--front" id="heroCard" width="560" height="782"></canvas>
+          </div>
+        </div>
       </div>
-      <div class="home__more"><button type="button" class="link-btn" data-go="creation">[[edit.s]] Option : ajouter un cadre, un nom ou des textes</button><button type="button" class="link-btn" data-go="guide">[[book.s]] Comprendre une carte : zones, marges, vocabulaire</button></div>
+      <div class="home__sec"><h3>Le parcours</h3><p>Cinq étapes, de l'image au fichier. Tu peux revenir sur chacune à tout moment.</p></div>
+      <ol class="journey">
+        <li><button type="button" class="jstep" data-go="image">[[image]]<i>Étape 1</i><b>Illustration</b><span>Importe ton image ou prends un exemple, puis cadre-la sur la carte.</span></button></li>
+        <li><button type="button" class="jstep" data-go="atelier">[[atelier]]<i>Étape 2</i><b>Finitions</b><span>Holo, dorure, vernis, relief : règle les effets et leurs zones.</span></button></li>
+        <li><button type="button" class="jstep" data-go="serie">[[serie]]<i>Étape 3</i><b>Série</b><span>Toutes les cartes du set, leurs raretés et les tirages.</span></button></li>
+        <li><button type="button" class="jstep" data-go="maquettes">[[cube]]<i>Étape 4</i><b>Maquettes</b><span>Booster, display, slab, cadre : ta carte en volume.</span></button></li>
+        <li><button type="button" class="jstep" data-go="plans">[[scissors]]<i>Étape 5</i><b>Impression</b><span>Plans de découpe, contrôle et fichiers pour l'imprimeur.</span></button></li>
+      </ol>
+      <div class="home__sec"><h3>Outils</h3><p>En dehors du parcours, quand tu en as besoin.</p></div>
+      <div class="tools">
+        <button type="button" class="tool tool--studio" data-go="studio"><span class="tool__txt">[[camera]]<b>Studio</b><span>Filme tes cartes : mouvements, deck, décors et effets, puis une vidéo prête à partager.</span><em>Ouvrir le Studio [[right.s]]</em></span><span class="tool__fan" id="homeFan" aria-hidden="true"><i></i><i></i><i></i></span></button>
+        <button type="button" class="tool" data-go="creation">[[edit]]<b>Cadre et texte</b><span>En option : ajoute une bordure, un nom ou des textes si ton illustration n'en a pas déjà.</span></button>
+        <button type="button" class="tool" data-go="guide">[[book]]<b>Comprendre une carte</b><span>Zones, marges, fond perdu : le vocabulaire de l'imprimeur, expliqué simplement.</span></button>
+      </div>
+      <div class="home__sec home__sec--row"><h3>Tes cartes</h3><button type="button" class="link-btn" data-go="serie">Ouvrir la série [[right.s]]</button></div>
+      <div class="hstrip" id="homeCards"></div>
     </div>
   </section>
 

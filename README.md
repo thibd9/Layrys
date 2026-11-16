@@ -52,6 +52,7 @@ node tools/check.js
 | `mock3d.js`, `mock_ui.js`, `mockups.js` | moteur et interface des maquettes 3D |
 | `studio.js` | scène d'animation et export vidéo |
 | `create.js`, `help.js`, `stack.js`, `tour.js`, `gallery.js` | cadre et texte, aides, pile de calques, guide, bibliothèque |
+| `home.js` | accueil (carte rendue en direct, parcours, outils, cartes de la série) et barre latérale |
 | `dielines.js`, `pdf.js`, `print.js` | plans de découpe et fichiers d'impression |
 
 Les dossiers `src/v7`, `src/v10`, `src/v11` contiennent d'anciennes versions dont `gen_body.py` reprend encore des fragments.

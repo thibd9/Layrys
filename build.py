@@ -11,7 +11,7 @@ if m:
     d = m.group(1)
     head = head[:m.start()] + '@media (prefers-color-scheme: dark) {\n  :root:not([data-theme="light"]) {' + d + '}\n}\n:root[data-theme="dark"] {' + d + '}' + head[m.end():]
 body = (src / "body.html").read_text()
-js = "\n".join((src / f).read_text() for f in ["shader.js", "data.js", "assets.js", "engine.js", "mock3d.js", "dielines.js", "pdf.js", "print.js", "app.js", "extras.js", "mockups.js", "mock_ui.js", "gallery.js", "create.js", "help.js", "stack.js", "studio.js", "tour.js"])
+js = "\n".join((src / f).read_text() for f in ["shader.js", "data.js", "assets.js", "engine.js", "mock3d.js", "dielines.js", "pdf.js", "print.js", "app.js", "extras.js", "mockups.js", "mock_ui.js", "gallery.js", "create.js", "help.js", "stack.js", "studio.js", "tour.js", "home.js"])
 script = "<script>\n(() => {\n  \"use strict\";\n" + js + "\n})();\n</script>\n"
 page = head + body + script
 (root / "page.html").write_text(page)
