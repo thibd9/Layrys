@@ -22,6 +22,7 @@
     return onSubject && (Math.abs(l.x - 0.5) > 0.004 || Math.abs(l.y - 0.5) > 0.004);
   }
   const HELP = {
+    stCount: "Nombre de cartes sur scène, de 2 à 12. Si ta série en compte moins, elles sont reprises en boucle.",
     stDur: "Durée totale de l'animation. Plus elle est longue, plus le mouvement est lent.", stZoom: "Rapproche ou éloigne la caméra. Au-delà de 100 %, la carte remplit davantage le cadre.", stCam: "Angle de la caméra : positif, elle regarde la carte d'en haut et le sol se découvre ; négatif, elle la regarde d'en bas.",
     stFxAmt: "Force commune du halo, des rayons, du bokeh, de la lueur de contour, des particules et du grain.", stSeqOn: "Compose une vidéo plus longue : chaque mouvement part de l'endroit où le précédent s'est arrêté.", stFlip: "Joue le mouvement en miroir : ce qui venait de la gauche vient de la droite.",
     crImgS: "100 % : l'image remplit la carte, fond perdu compris. En dessous, le carton apparaît sur les bords. Au-dessus, tu zoomes dans l'image.",

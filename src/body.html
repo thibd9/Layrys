@@ -158,7 +158,8 @@
           <div class="crstep"><h3>Mouvement</h3>
             <div class="row"><div class="chips" id="stCats" aria-label="Familles de mouvements"></div></div>
             <div class="stgrid" id="stAnims"></div>
-            <p class="note" id="stMultiNote" hidden>Ta série a moins de trois cartes : la même carte est répétée. Ajoute des cartes dans Série pour les voir défiler.</p>
+            <div class="slider small" id="stCountW" hidden><span>Nombre de cartes</span><output id="o-stCount">5 cartes</output><input type="range" id="stCount" min="2" max="12" step="1" value="5"></div>
+            <p class="note" id="stMultiNote" hidden></p>
             <label class="check"><input type="checkbox" id="stSeqOn"> Enchaîner plusieurs mouvements</label>
             <div class="crsub" id="stSeqBox" hidden>
               <div class="chips" id="stSeq" aria-label="Mouvements de l'enchaînement, dans l'ordre"></div>
@@ -174,6 +175,9 @@
           <div class="crstep"><h3>Décor</h3>
             <div class="chips" id="stBacks"></div>
             <div class="kv" id="stColors" hidden><label class="field">Centre<input type="color" id="stC1" value="#3b1d4a"></label><label class="field">Bords<input type="color" id="stC2" value="#0c0612"></label></div>
+            <p class="q" style="margin:4px 0 0">Sol</p>
+            <div class="seg" id="stFloor" aria-label="Type de sol"></div>
+            <p class="note" id="stFloorNote"></p>
           </div>
           <div class="crstep"><h3>Effets</h3>
             <div class="stfx" id="stFx"></div>
