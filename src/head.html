@@ -501,6 +501,12 @@ select.mini { min-height: 28px; padding: 3px 26px 3px 9px; font-size: 12.5px; fo
 .sttile[aria-pressed="true"] { border-color: var(--sel); background: var(--sel-soft); box-shadow: inset 3px 0 0 var(--sel); } .sttile[aria-pressed="true"] span { color: var(--sel-ink); }
 .stseq { display: inline-flex; align-items: center; gap: 6px; } .stseq i { font-style: normal; font-weight: 700; font-size: 11px; width: 17px; height: 17px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; } .stseq .ic { width: 12px; height: 12px; opacity: .6; }
 .sttile[hidden] { display: none; } .sttile:disabled { opacity: .4; cursor: not-allowed; }
+.stcards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; max-height: 232px; overflow: auto; padding: 2px; }
+.stcard { position: relative; aspect-ratio: 63 / 88; padding: 0; border: 1px solid var(--line-2); border-radius: 6px; background: var(--surface-3) center / cover no-repeat; opacity: .62; transition: opacity .15s ease-out, transform .15s ease-out; }
+.stcard:hover { opacity: 1; transform: translateY(-2px); } .stcard:focus-visible { outline: 2px solid var(--sel); outline-offset: 2px; }
+.stcard[aria-pressed="true"], .stcard.is-lead { opacity: 1; outline: 2px solid var(--sel); outline-offset: 1px; }
+.stcard.is-lead { outline-style: dashed; }
+.stcard i { position: absolute; left: 0; bottom: 0; min-width: 20px; padding: 1px 5px; border-radius: 0 6px 0 5px; background: var(--sel); color: #fff; font: 700 11.5px/1.5 var(--font-body); font-style: normal; text-align: center; }
 .stsw { display: inline-block; width: 14px; height: 14px; margin-right: 7px; border-radius: 50%; border: 1px solid rgba(128,128,128,.5); vertical-align: -2px; }
 .stfx { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; }
 #stSide.is-busy .crstep:not(:last-child) { opacity: .5; pointer-events: none; }

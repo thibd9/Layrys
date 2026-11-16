@@ -14,7 +14,7 @@ Tout tourne dans le navigateur, sans serveur. Le travail est enregistré sur l'a
 
 En dehors du parcours :
 
-- **Studio** : 25 mouvements de présentation (une carte, plusieurs cartes, deck), enchaînements, décors, quatre types de sol, 12 effets, export vidéo et image.
+- **Studio** : 26 mouvements de présentation (une carte, plusieurs cartes, deck, mouvement personnalisé par poses), choix des cartes sur scène, enchaînements, décors, quatre types de sol, 12 effets, export vidéo et image.
 - **Cadre et texte** : option pour ajouter une bordure, un nom, des textes.
 - **Guide** : tutoriel pas à pas.
 

@@ -218,7 +218,7 @@ T = '''<script>(function(){try{var d=document.documentElement,t=localStorage.get
           <div class="crstep"><h3>Mouvement</h3>
             <div class="row"><div class="chips" id="stCats" aria-label="Familles de mouvements"></div></div>
             <div class="stgrid" id="stAnims"></div>
-            <div class="slider small" id="stCountW" hidden><span>Nombre de cartes</span><output id="o-stCount">5 cartes</output><input type="range" id="stCount" min="2" max="12" step="1" value="5"></div>
+            <div class="slider small" id="stCountW" hidden><span>Nombre de cartes</span><output id="o-stCount">5 cartes</output><input type="range" id="stCount" min="2" max="24" step="1" value="5"></div>
             <p class="note" id="stMultiNote" hidden></p>
             <label class="check"><input type="checkbox" id="stSeqOn"> Enchaîner plusieurs mouvements</label>
             <div class="crsub" id="stSeqBox" hidden>
@@ -226,7 +226,27 @@ T = '''<script>(function(){try{var d=document.documentElement,t=localStorage.get
               <p class="note" id="stSeqHint"></p>
               <div class="row"><button type="button" class="link-btn muted" id="stSeqClear">Vider l'enchaînement</button></div>
             </div>
+            <div class="crsub" id="stCustom" hidden>
+              <div class="chips" id="stKeys" aria-label="Poses du mouvement, dans l'ordre"></div>
+              <div class="row"><button type="button" class="btn small" id="stKeyAdd">[[plus.s]] Ajouter une pose</button><button type="button" class="link-btn muted" id="stKeyDel">Supprimer cette pose</button></div>
+              <div class="kv">
+                <div class="slider small"><span>Rotation</span><output id="o-stKyaw">0°</output><input type="range" id="stKyaw" min="-360" max="360" step="1" value="0"></div>
+                <div class="slider small"><span>Inclinaison</span><output id="o-stKpitch">0°</output><input type="range" id="stKpitch" min="-80" max="80" step="1" value="0"></div>
+                <div class="slider small"><span>Roulis</span><output id="o-stKroll">0°</output><input type="range" id="stKroll" min="-180" max="180" step="1" value="0"></div>
+                <div class="slider small"><span>Rapprochement</span><output id="o-stKz">0 %</output><input type="range" id="stKz" min="-150" max="120" step="1" value="0"></div>
+                <div class="slider small"><span>Position horizontale</span><output id="o-stKx">0 %</output><input type="range" id="stKx" min="-150" max="150" step="1" value="0"></div>
+                <div class="slider small"><span>Position verticale</span><output id="o-stKy">0 %</output><input type="range" id="stKy" min="-150" max="150" step="1" value="0"></div>
+              </div>
+              <label class="check"><input type="checkbox" id="stKeyLoop" checked> Revenir à la première pose à la fin</label>
+              <p class="note">Choisis une pose, puis règle-la : fais glisser la carte dans l'aperçu pour la tourner, Maj + glisser pour la déplacer, molette pour l'approcher. Les poses s'enchaînent en douceur, huit au plus.</p>
+            </div>
             <div class="row"><button type="button" class="btn small" id="stRandom">[[shuffle.s]] Surprends-moi</button><label class="check"><input type="checkbox" id="stFlip"> Inverser le sens</label></div>
+          </div>
+          <div class="crstep"><h3>Cartes sur scène</h3>
+            <div class="stcards" id="stCards"></div>
+            <p class="note" id="stCardsNote"></p>
+            <div class="row"><button type="button" class="btn small" id="stCardsAll">Revenir à toute la série</button><button type="button" class="btn small" id="stCardsNew" title="Ajoute à la série une carte avec une autre illustration">[[plus.s]] Nouvelle carte</button></div>
+            <label class="check"><input type="checkbox" id="stRotate"> Changer de carte à chaque passage</label>
           </div>
           <div class="crstep"><h3>Caméra</h3>
             <div class="slider small"><span>Durée</span><output id="o-stDur">8 s</output><input type="range" id="stDur" min="3" max="16" step="0.5" value="8"></div>

@@ -104,13 +104,15 @@
   function analysisFor(src, blur) { let m = analysisCache.get(src); if (!m) { m = new Map(); analysisCache.set(src, m); } const sb = subjBySrc.get(src), k = String(blur) + (sb ? ":" + sb._sid : ""); if (!m.has(k)) { if (m.size > 3) m.clear(); m.set(k, analyze(src, blur, sb)); } return m.get(k); }
   function setSubject(src, img) { if (!src) return; if (img) { img._sid = ++subjSeq; subjBySrc.set(src, img); } else subjBySrc.delete(src); const docs = new Set([project.front, project.back]); for (const c of project.cards) { for (const d of [c.front, c.back]) if (d && d.layers) { docs.add(d); if (d.layers.some(l => l.src === src)) { c.thumb = ""; c.pre = null; } } } for (const d of docs) if (d && d.layers) for (const l of d.layers) if (l.kind === "image" && l.src === src) { l.analysis = analysisFor(src, l.fx.blur); l.version++; } ui.dirty = true; }
   function setSrc(layer, src) { layer.src = src; layer.w = src.naturalWidth || src.width; layer.h = src.naturalHeight || src.height; layer.analysis = analysisFor(src, layer.fx.blur); layer.version++; }
+  /* very light print grain: each pixel moves by a little over one percent at most, always the same way for a given card */
+  function printGrain(c) { try { const x = c.getContext("2d"), im = x.getImageData(0, 0, c.width, c.height), d = im.data; let s = 1234567; for (let i = 0; i < d.length; i += 4) { s = (s * 1103515245 + 12345) & 0x7fffffff; const k = (((s >> 16) & 255) / 255 - 0.5) * 7; d[i] += k; d[i + 1] += k; d[i + 2] += k; } x.putImageData(im, 0, 0); } catch (e) {} return c; }
   function regen(layer) {
     const ca = aspect();
     if (layer.kind === "text") setSrc(layer, textCanvas({ ...layer.text, text: resolveTokens(layer.text.text, layer) }, ca));
     else if (layer.kind === "frame") setSrc(layer, frameCanvas(layer.frame, ca));
     else if (layer.kind === "bg") setSrc(layer, bgCanvas(layer.bg, ca));
     else if (layer.kind === "badge") setSrc(layer, badgeCanvas(layer.badge, ca));
-    else if (layer.kind === "back") setSrc(layer, backCanvas(project.backStyle.style, project.backStyle.c1, project.backStyle.c2, project.backStyle.text, ca));
+    else if (layer.kind === "back") setSrc(layer, printGrain(backCanvas(project.backStyle.style, project.backStyle.c1, project.backStyle.c2, project.backStyle.text, ca)));
     else if (layer.kind === "image" && layer.src) { layer.analysis = analysisFor(layer.src, layer.fx.blur); layer.version++; }
   }
   let regenTimer = null;
@@ -426,7 +428,7 @@
   $("#edge").addEventListener("change", e => { project.edge = e.target.value; applyEdge(); commit(); });
   $("#coatKind").addEventListener("change", e => { project.coatKind = e.target.value; applyCoat(); commit(); });
   $("#coat").addEventListener("input", e => { project.coat = +e.target.value; $("#o-coat").value = e.target.value + "%"; applyCoat(); }); $("#coat").addEventListener("change", commit);
-  function applyCoat() { const k = project.coatKind; const v = project.coat / 100; const f = k === "none" ? 0 : k === "matte" ? 0.15 : k === "satin" ? 0.5 : 1; for (const doc of allDocs()) doc.coat = v * f; $("#stockBtn").innerHTML = `Carton <small>0,33 mm · ${({ gloss: "brillant", satin: "satiné", matte: "mat", none: "sans vernis" })[k]}</small>`; }
+  function applyCoat() { const k = project.coatKind; const v = project.coat / 100; const f = k === "none" ? 0 : k === "matte" ? 0.15 : k === "satin" ? 0.5 : 1; for (const doc of allDocs()) doc.coat = v * (doc.id === "back" ? Math.min(f, 0.12) : f); /* the back of a card is matte whatever the front */ $("#stockBtn").innerHTML = `Carton <small>0,33 mm · ${({ gloss: "brillant", satin: "satiné", matte: "mat", none: "sans vernis" })[k]}</small>`; }
   $("#marks").addEventListener("change", e => { ui.marks = e.target.checked; card.classList.toggle("show-marks", ui.marks); resize(); });
   function syncGlobalsToUI() { $("#stock").value = project.front.stock; $("#edge").value = project.edge; $("#coatKind").value = project.coatKind; $("#core").value = project.print.core; $("#coat").value = project.coat; $("#o-coat").value = project.coat + "%"; $("#bleed").value = project.print.bleed; $("#safe").value = project.print.safe; $("#dpi").value = project.print.dpi; $("#backC1").value = project.backStyle.c1; $("#backC2").value = project.backStyle.c2; $("#backText").value = project.backStyle.text || ""; applyCoat(); applyCore(); applyEdge(); renderBacks(); }
 
