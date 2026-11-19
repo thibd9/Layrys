@@ -92,5 +92,8 @@
     try { ui.split = localStorage.getItem("layrys-split") === "1"; } catch (e) {}
     for (const b of $$("[data-split]")) b.addEventListener("click", () => splitSet(b.dataset.split === "1"));
     const swap = () => { setFace(ui.face === "back" ? "front" : "back"); setTimeout(splitDraw, 60); }; $("#splitSwap").addEventListener("click", swap); $("#splitCv").addEventListener("click", swap);
+    { const sd = $("#stageDark"), bn = $("#bench"); let dk = true; try { dk = localStorage.getItem("layrys-stage") !== "light"; } catch (e) {}
+      const setDk = v => { dk = v; bn.dataset.dark = v ? "1" : "0"; sd.setAttribute("aria-pressed", String(v)); sd.title = v ? "Scène sombre : clique pour une scène claire" : "Scène claire : clique pour une scène sombre"; try { localStorage.setItem("layrys-stage", v ? "dark" : "light"); } catch (e) {} };
+      sd.addEventListener("click", () => setDk(!dk)); setDk(dk); }
     setInterval(splitDraw, 500); fmtViz(); if (ui.page === "image") splitSet(ui.split);
   }

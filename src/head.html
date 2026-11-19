@@ -863,4 +863,8 @@ select.mini { min-height: 28px; padding: 3px 26px 3px 9px; font-size: 12.5px; fo
 @media (max-width: 1080px) { .journey { gap: 10px; } .journey li + li { border-top: 0; } .journey .jstep, .journey li:first-child .jstep, .journey li:last-child .jstep { grid-template-columns: 112px minmax(0, 1fr); column-gap: 14px; padding: 10px 14px 10px 10px; align-content: center; } .jv { grid-row: 1 / span 3; height: 112px; margin: 0; } .jv .jc { transform-origin: center; scale: .8; } .jstep > i { align-self: end; } .show { grid-template-columns: minmax(0, 1fr); } .extras { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 520px) { .show .tool { grid-template-columns: minmax(0, 1fr) 36%; padding: 18px; min-height: 0; } .slab .jc { height: 96px; } .tool--studio .tool__fan { display: block; } .show .tool--studio { grid-template-columns: minmax(0, 1fr) 36%; } }
 @media (prefers-reduced-motion: reduce) { .jc, .jv--fx .jc::after, .slab { transition: none; } }
+/* ---- v47: a dark stage, where a film shows best ---- */
+.stage[data-dark="1"] { --stage: #07070a; --stage-2: #1c1a26; --stage-ink: #ecebe6; --stage-muted: #9a978e; --stage-chip: rgba(255,255,255,.09); --stage-line: rgba(255,255,255,.14); --stage-dot: rgba(255,255,255,.05);
+  background-image: radial-gradient(var(--stage-dot) 1px, transparent 1.3px), radial-gradient(42% 46% at 50% 46%, rgba(126,96,255,.2), transparent 70%), radial-gradient(circle at 50% 38%, var(--stage-2), var(--stage) 72%); background-size: 22px 22px, 100% 100%, 100% 100%; }
+.stage__zoom #stageDark[aria-pressed="true"] { color: #ffb061; }
 </style>

@@ -876,6 +876,10 @@ select.mini { min-height: 28px; padding: 3px 26px 3px 9px; font-size: 12.5px; fo
 @media (max-width: 1080px) { .journey { gap: 10px; } .journey li + li { border-top: 0; } .journey .jstep, .journey li:first-child .jstep, .journey li:last-child .jstep { grid-template-columns: 112px minmax(0, 1fr); column-gap: 14px; padding: 10px 14px 10px 10px; align-content: center; } .jv { grid-row: 1 / span 3; height: 112px; margin: 0; } .jv .jc { transform-origin: center; scale: .8; } .jstep > i { align-self: end; } .show { grid-template-columns: minmax(0, 1fr); } .extras { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 520px) { .show .tool { grid-template-columns: minmax(0, 1fr) 36%; padding: 18px; min-height: 0; } .slab .jc { height: 96px; } .tool--studio .tool__fan { display: block; } .show .tool--studio { grid-template-columns: minmax(0, 1fr) 36%; } }
 @media (prefers-reduced-motion: reduce) { .jc, .jv--fx .jc::after, .slab { transition: none; } }
+/* ---- v47: a dark stage, where a film shows best ---- */
+.stage[data-dark="1"] { --stage: #07070a; --stage-2: #1c1a26; --stage-ink: #ecebe6; --stage-muted: #9a978e; --stage-chip: rgba(255,255,255,.09); --stage-line: rgba(255,255,255,.14); --stage-dot: rgba(255,255,255,.05);
+  background-image: radial-gradient(var(--stage-dot) 1px, transparent 1.3px), radial-gradient(42% 46% at 50% 46%, rgba(126,96,255,.2), transparent 70%), radial-gradient(circle at 50% 38%, var(--stage-2), var(--stage) 72%); background-size: 22px 22px, 100% 100%, 100% 100%; }
+.stage__zoom #stageDark[aria-pressed="true"] { color: #ffb061; }
 </style>
 <script>(function(){try{var d=document.documentElement,t=localStorage.getItem("layrys-theme")||"light",f=localStorage.getItem("layrys-font")||"";if(t==="dark"||t==="light")d.dataset.theme=t;if(f)d.dataset.font=f;if(localStorage.getItem("layrys-rail")==="min")d.dataset.rail="min";}catch(e){}})();</script>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="i-atelier" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M12 8.5l1.1 2.4 2.4 1.1-2.4 1.1L12 15.5l-1.1-2.4L8.5 12l2.4-1.1z"/></symbol><symbol id="i-serie" viewBox="0 0 24 24"><rect x="8" y="3" width="12" height="16" rx="2"/><path d="M5 7v12a2 2 0 0 0 2 2h8"/></symbol><symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="7" r="2.5"/><circle cx="6" cy="17" r="2.5"/><path d="M8 8.5L20 17M8 15.5L20 7"/></symbol><symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></symbol><symbol id="i-undo" viewBox="0 0 24 24"><path d="M8 5L3 10l5 5"/><path d="M3 10h11a6 6 0 0 1 0 12h-3"/></symbol><symbol id="i-redo" viewBox="0 0 24 24"><path d="M16 5l5 5-5 5"/><path d="M21 10H10a6 6 0 0 0 0 12h3"/></symbol><symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1 1-1.1 1.8"/><path d="M12 17h.01"/></symbol><symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/></symbol><symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V5M7 9.5l5-5 5 5M5 20h14"/></symbol><symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol><symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol><symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></symbol><symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-eyeoff" viewBox="0 0 24 24"><path d="M4 4l16 16M10 6a9 9 0 0 1 2-.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3 3.8M6.5 7.5A17 17 0 0 0 2.5 12S6 18.5 12 18.5a9 9 0 0 0 3.5-.7"/></symbol><symbol id="i-up" viewBox="0 0 24 24"><path d="M6 14l6-6 6 6"/></symbol><symbol id="i-down" viewBox="0 0 24 24"><path d="M6 10l6 6 6-6"/></symbol><symbol id="i-left" viewBox="0 0 24 24"><path d="M14 6l-6 6 6 6"/></symbol><symbol id="i-right" viewBox="0 0 24 24"><path d="M10 6l6 6-6 6"/></symbol><symbol id="i-flip" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3L20 9M20 4v5h-5M20 12a8 8 0 0 1-14 5.3L4 15M4 20v-5h5"/></symbol><symbol id="i-zoomin" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3M11 8.5v5M8.5 11h5"/></symbol><symbol id="i-zoomout" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3M8.5 11h5"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3"/></symbol><symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/></symbol><symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></symbol><symbol id="i-pause" viewBox="0 0 24 24"><path d="M8.5 5.5v13M15.5 5.5v13"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17.5l5-5 4 4 2.5-2.5 4.5 4.5"/></symbol><symbol id="i-hand" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></symbol><symbol id="i-compare" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M12 3v18"/></symbol><symbol id="i-proof" viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></symbol><symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol><symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></symbol><symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol><symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12.5l9 5 9-5M3 17l9 5 9-5"/></symbol><symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol><symbol id="i-target" viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3"/></symbol><symbol id="i-swatch" viewBox="0 0 24 24"><path d="M5 4h6v13a3 3 0 0 1-6 0z"/><path d="M11 7.5l4.2-2.4 3 5.2L11 14.5"/><path d="M12.5 17.5H20v-6h-2.2"/><path d="M8 17h.01"/></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></symbol><symbol id="i-auto" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></symbol><symbol id="i-rotate" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/></symbol><symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol><symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 1.8 1.8.7-1.8.7L19 21l-.7-1.8-1.8-.7 1.8-.7z"/></symbol><symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.9 2-2 0-1.4 1-2 2.2-2H18a3 3 0 0 0 3-3c0-6-4-9-9-9z"/><path d="M7.5 12h.01M9.5 7.5h.01M14.5 7h.01"/></symbol><symbol id="i-brush" viewBox="0 0 24 24"><path d="M14 4l6 6-8 8H6v-6z"/><path d="M6 18l-2.5 2.5"/></symbol><symbol id="i-wand" viewBox="0 0 24 24"><path d="M5 19L16 8M14 6l4 4"/><path d="M18 3v3M16.5 4.5h3M6 5v2M5 6h2"/></symbol><symbol id="i-rect" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="1" stroke-dasharray="3 2.5"/></symbol><symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M3 7h3.5c3 0 4.5 2 6 5s3 5 6 5H21M21 17l-3-3M21 17l-3 3M3 17h3.5c1.4 0 2.5-.5 3.4-1.300M21 7h-2.500c-1.400 0-2.500.5-3.400 1.300M21 7l-3-3M21 7l-3 3"/></symbol><symbol id="i-card" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="2"/></symbol><symbol id="i-fan" viewBox="0 0 24 24"><rect x="9.5" y="4" width="8" height="12" rx="1.5" transform="rotate(16 13.5 18)"/><rect x="8" y="4" width="8" height="12" rx="1.5"/><rect x="6.500" y="4" width="8" height="12" rx="1.5" transform="rotate(-16 10.5 18)"/></symbol><symbol id="i-row" viewBox="0 0 24 24"><rect x="2.5" y="6" width="5.5" height="12" rx="1"/><rect x="9.25" y="6" width="5.5" height="12" rx="1"/><rect x="16" y="6" width="5.5" height="12" rx="1"/></symbol><symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="3" width="4.600" height="5.400" rx=".8"/><rect x="9.700" y="3" width="4.600" height="5.400" rx=".8"/><rect x="15.400" y="3" width="4.600" height="5.400" rx=".8"/><rect x="4" y="9.300" width="4.600" height="5.400" rx=".8"/><rect x="9.700" y="9.300" width="4.600" height="5.400" rx=".8"/><rect x="15.400" y="9.300" width="4.600" height="5.400" rx=".8"/><rect x="4" y="15.600" width="4.600" height="5.400" rx=".8"/><rect x="9.700" y="15.600" width="4.600" height="5.400" rx=".8"/><rect x="15.400" y="15.600" width="4.600" height="5.400" rx=".8"/></symbol><symbol id="i-case" viewBox="0 0 24 24"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><rect x="7.500" y="5.500" width="9" height="13" rx="1"/></symbol><symbol id="i-slab" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><rect x="7.500" y="9" width="9" height="11" rx="1"/><path d="M8 5.500h8"/></symbol><symbol id="i-block" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="1.5"/><rect x="8.500" y="7" width="7" height="10" rx="1"/><path d="M5.500 6.500h.01M18.500 6.500h.01M5.500 17.500h.01M18.500 17.500h.01" stroke-width="2.200"/></symbol><symbol id="i-frame" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><rect x="6" y="6" width="12" height="12"/><rect x="9" y="8" width="6" height="8" rx="1"/></symbol><symbol id="i-booster" viewBox="0 0 24 24"><path d="M7 5h10v14H7z"/><path d="M7 5l1-2h8l1 2M7 19l1 2h8l1-2"/></symbol><symbol id="i-mat" viewBox="0 0 24 24"><rect x="2.500" y="6" width="19" height="12" rx="2"/><rect x="6" y="9" width="4" height="6" rx=".8"/><path d="M13 12h5"/></symbol><symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.500"/><circle cx="12" cy="12" r="5.200"/><path d="M12 9.800v4.400M10.200 12h3.600"/></symbol><symbol id="i-boxo" viewBox="0 0 24 24"><path d="M3 9l2-4h14l2 4v10H3z"/><path d="M3 9h18M9 13h6"/></symbol><symbol id="i-tin" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="12" rx="3"/><path d="M3 11h18M9 5h6"/></symbol><symbol id="i-book" viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/><path d="M9 8h6"/></symbol><symbol id="i-pile" viewBox="0 0 24 24"><path d="M4 16l8 3 8-3M4 13l8 3 8-3"/><path d="M12 5l8 3-8 3-8-3z"/></symbol></svg>
@@ -1264,7 +1268,7 @@ select.mini { min-height: 28px; padding: 3px 26px 3px 9px; font-size: 12.5px; fo
             <div class="notice" id="strayNote" role="status" hidden><svg class="ic s" aria-hidden="true"><use href="#i-help"/></svg><span id="strayText"></span><span class="notice__acts"><button type="button" class="btn small accent" id="strayFix">Retirer ce calque</button><button type="button" class="btn small ghost" id="strayKeep">Le garder</button></span></div>
             <div class="stage" id="bench">
               <div class="stage__tag" id="fxTag"><i></i><span id="fxname"></span></div>
-              <div class="stage__zoom"><button type="button" id="panMode" title="Déplacer la vue (ou maintenir Espace)" aria-label="Déplacer la vue" aria-pressed="false"><svg class="ic s" aria-hidden="true"><use href="#i-hand"/></svg></button><button type="button" id="zoomOut" title="Zoom arrière" aria-label="Zoom arrière"><svg class="ic s" aria-hidden="true"><use href="#i-minus"/></svg></button><output id="zoomOutp">100 %</output><button type="button" id="zoomIn" title="Zoom avant" aria-label="Zoom avant"><svg class="ic s" aria-hidden="true"><use href="#i-plus"/></svg></button><button type="button" id="zoomFit" title="Ajuster à la scène" aria-label="Ajuster"><svg class="ic s" aria-hidden="true"><use href="#i-fit"/></svg></button></div>
+              <div class="stage__zoom"><button type="button" id="stageDark" title="Scène sombre ou claire" aria-label="Scène sombre" aria-pressed="true"><svg class="ic s" aria-hidden="true"><use href="#i-moon"/></svg></button><button type="button" id="panMode" title="Déplacer la vue (ou maintenir Espace)" aria-label="Déplacer la vue" aria-pressed="false"><svg class="ic s" aria-hidden="true"><use href="#i-hand"/></svg></button><button type="button" id="zoomOut" title="Zoom arrière" aria-label="Zoom arrière"><svg class="ic s" aria-hidden="true"><use href="#i-minus"/></svg></button><output id="zoomOutp">100 %</output><button type="button" id="zoomIn" title="Zoom avant" aria-label="Zoom avant"><svg class="ic s" aria-hidden="true"><use href="#i-plus"/></svg></button><button type="button" id="zoomFit" title="Ajuster à la scène" aria-label="Ajuster"><svg class="ic s" aria-hidden="true"><use href="#i-fit"/></svg></button></div>
               <div class="stagewrap" id="stagewrap">
                 <div class="tilt" id="tiltRoot"><div class="tilt__in" id="tiltIn">
                   <div class="protect" id="protect" data-mode="none">
@@ -1891,6 +1895,19 @@ float sparkle(vec2 uv, vec3 H, float scale, float seed){
   float s=pow(max(dot(n,H),0.), 90.); float dot_=smoothstep(0.22,0.0,d);
   return s*dot_*step(0.35, hash21(id+seed+7.7));
 }
+/* a full turn of saturated hues, smooth at the joins */
+vec3 hueRGB(float h){ vec3 c=clamp(abs(mod(h*6.+vec3(0.,4.,2.),6.)-3.)-1.,0.,1.); return c*c*(3.-2.*c); }
+/* glitter: flakes of film, each with its own tilt and its own colour; one lights up when it sends the lamp to the eye, and the brightest throw a four-point glint */
+vec3 glitter(vec2 uv, vec3 H, float scale, float seed){
+  vec2 p=uv*vec2(uAspect,1.)*scale; vec2 id=floor(p); vec2 f=fract(p);
+  vec2 r=hash22(id+seed); vec3 n=normalize(vec3((r-.5)*1.9, 1.));
+  vec2 d=f-(0.5+(hash22(id+seed+3.1)-.5)*0.5); float dd=length(d);
+  float s=pow(max(dot(n,H),0.), 150.);
+  float core=smoothstep(0.24,0.0,dd);
+  float star=(exp(-abs(d.x)*42.)*exp(-abs(d.y)*7.)+exp(-abs(d.y)*42.)*exp(-abs(d.x)*7.))*step(0.78, hash21(id+seed+9.1));
+  vec3 tint=mix(vec3(1.), hueRGB(hash21(id+seed+5.5)), 0.6);
+  return tint*s*(core*1.5+star*1.1)*step(0.4, hash21(id+seed+7.7));
+}
 vec3 bump3(vec3 x, vec3 yo){ vec3 y=1.-x*x; return clamp(y-yo,0.,1.); }
 /* visible spectrum: x = 0 at 400 nm, 1 at 700 nm; black outside, as a grating sends no visible light there */
 vec3 spectral(float x){
@@ -1967,7 +1984,8 @@ void main(){
   float edge=edgeAt(uv);
   /* where the relief applies: everywhere, on the detected subject, on the contours, or on a painted zone */
   float rz=1.; if(uReliefZone==1) rz=smoothstep(0.35,0.65,aux2(uv).r); else if(uReliefZone==2) rz=smoothstep(0.06,0.3,edge); else if(uReliefZone==3) rz=texture2D(uReliefTex, vec2(uv.x,1.-uv.y)).r;
-  vec2 p=rot(uAngle)*pc*uScale;
+  vec2 pcp=pc; if(uBlend==0) pcp+=vec2(sin(uTilt.x), sin(uTilt.y))*0.045+(uPointer-0.5)*vec2(0.02,0.02);
+  vec2 p=rot(uAngle)*pcp*uScale;
   float ph; vec2 np; float pedge; float phase;
   pattern(p, cuv, ph, np, pedge, phase);
   float m=maskFor(uMaskMode, uMaskInvert, uv, raw, ph);
@@ -2016,20 +2034,39 @@ void main(){
   vec3 foil=(rainbow*(0.18+0.82*spec)*pedge*(0.55+0.45*broad) + sp*mix(vec3(1.),rainbow,0.5*uSat))*inkVis*edgeF*lightCol;
   vec3 col=img;
   if(uBlend==0){
-    /* holographic film: a silver mirror whose grooves split the light. The colour of a point depends on the angle between the lamp, the eye and the grooves of its cell;
-       where no visible wavelength fits, only the mirror is left. Translucent inks filter what comes back. */
-    vec3 hv=L+V; vec2 ht=hv.xy-N.xy*dot(hv,N);
+    /* holographic film, seen through the ink. A wide spectral gradient lies across the card and slides as the eye and the lamp move; a second grating, crossed, keeps it from being plain stripes.
+       A luminous pillar runs through the lamp across the grooves, white at its heart. Each cell of the pattern has its own groove direction: it shifts the hue a little and, above all,
+       decides when the cell flashes. The film tints the artwork (a silver base, more coloured in the pillar) and its own light is added by colour dodge: blacks stay black, light inks burn
+       into colour, dark inks take a coloured sheen */
+    vec2 dl=Lp.xy-pc; vec2 vw=vec2(sin(uTilt.x), sin(uTilt.y))*1.5+dl*0.55;
     float th=(uPattern==1?uAngle:phase*3.14159)+0.6; vec2 gd=vec2(cos(th),sin(th));
-    float sd=abs(dot(ht,gd))*(0.9+0.8*uBands)+abs(uHueShift)*0.3;
-    vec3 dif=uPalette==0?grating(sd):palette(sd*1.5+uHueShift)*pow(0.5+0.5*cos(6.2831*sd*1.5),1.4)*1.3;
-    dif=mix(vec3(lum(dif)),dif,uSat);
-    vec2 dl=Lp.xy-pc; float att=0.22+1.05/(1.+2.2*mix(1.,0.2,uLightSoft)*dot(dl,dl));
-    vec3 em=env(reflect(-V,N));
-    vec3 metal=vec3(0.84,0.86,0.9)*(0.7+0.3*clamp(em,0.3,1.15))+vec3(spec)*0.3*lightCol;
-    vec3 holo=(dif*att*pedge+sp*(0.5+dif))*edgeF*lightCol;
-    foil=holo;
-    vec3 film=img*metal+holo*mix(img,vec3(1.),0.3*uInk)*(0.55+0.5*lum(img));
-    col=mix(img, film, clamp(uFoilAmt,0.,1.))+holo*max(uFoilAmt-1.,0.);
+    vec2 gm=vec2(cos(uAngle+0.6), sin(uAngle+0.6)); vec2 gx=vec2(-gm.y,gm.x);
+    float cell=uPattern==1?0.:1.;
+    float s1=dot(pc,gm)*(0.32+0.42*uBands)+dot(vw,gm)*0.85+(dot(vw,gd)-dot(vw,gm))*0.22*cell+dot(N.xy,gd)*0.36+phase*0.12*cell+uHueShift;
+    float s2=dot(pc,gx)*(0.22+0.3*uBands)-dot(vw,gx)*0.6+phase*0.3*cell+0.31;
+    vec3 c1=uPalette==0?hueRGB(s1):palette(s1); vec3 c2=uPalette==0?hueRGB(s2+0.5):palette(s2+0.4);
+    vec3 dif=mix(c1,c2,0.24); dif=mix(vec3(1.),dif,0.82); dif*=mix(1.,0.74/max(lum(dif),0.22),0.55); dif=mix(vec3(lum(dif)),dif,min(uSat*1.1,1.5));
+    float dg=dot(pc-Lp.xy,gm); float pil=exp(-pow(dg*1.5,2.));
+    /* thinner streaks run beside the pillar, as on a film that is not perfectly flat */
+    float strk=exp(-pow((dg-0.34)*6.,2.))*0.55+exp(-pow((dg+0.46)*8.,2.))*0.4+exp(-pow((dg-0.78)*11.,2.))*0.3;
+    float near=1./(1.+1.5*mix(1.,0.25,uLightSoft)*dot(dl,dl));
+    float flash=mix(1., 0.86+0.7*pow(abs(dot(normalize(vw+vec2(1e-3)),gd)),2.), cell);
+#ifdef HAS_DERIV
+    float cpx=1./max(fwidth(pc.y),1e-5); float ml=1.-0.12*smoothstep(300.,640.,cpx)*(0.5+0.5*sin(dot(pc,gm)*470.));
+#else
+    float ml=1.;
+#endif
+    vec3 spk=(glitter(cuv,H,150.,0.)+glitter(cuv,H,95.,2.)+glitter(cuv,H,46.,5.)*1.3)*uSparkle;
+    float k=clamp(uFoilAmt,0.,1.);
+    float cAmt=clamp((0.2+0.34*pil)*min(uSat,1.4),0.,0.8);
+    vec3 tint=mix(vec3(0.86,0.88,0.92),dif,cAmt);
+    float bright=(0.92+(0.3*pil+0.16*strk)*(0.35+0.65*near)+0.42*spec)*mix(1.,flash,0.6)*mix(1.,pedge,0.3)*ml;
+    vec3 flm=img*tint*bright;
+    vec3 glow=dif*(0.05+(0.36*pil+0.22*strk)*flash)*(0.3+0.7*near)*pedge*edgeF;
+    vec3 hv=(glow+spk*(0.6+0.5*dif))*lightCol*mix(0.55+0.5*lum(img),1.,uInk);
+    vec3 film=min(flm/max(1.-hv*0.62,vec3(0.25)),vec3(1.6))+hv*0.34+lightCol*pow(pil,5.)*near*0.14;
+    foil=(dif*(0.3+0.7*pil)*flash*pedge+spk)*edgeF*lightCol;
+    col=mix(img,film,k)+hv*max(uFoilAmt-1.,0.)*0.7;
   }
   else if(uBlend==2){ float Li=lum(img);
     /* metal foil. The drawing is pressed into it: its lines and shading stay readable and catch the light, instead of a flat coloured shape */
@@ -6398,6 +6435,9 @@ ${inner}
     try { ui.split = localStorage.getItem("layrys-split") === "1"; } catch (e) {}
     for (const b of $$("[data-split]")) b.addEventListener("click", () => splitSet(b.dataset.split === "1"));
     const swap = () => { setFace(ui.face === "back" ? "front" : "back"); setTimeout(splitDraw, 60); }; $("#splitSwap").addEventListener("click", swap); $("#splitCv").addEventListener("click", swap);
+    { const sd = $("#stageDark"), bn = $("#bench"); let dk = true; try { dk = localStorage.getItem("layrys-stage") !== "light"; } catch (e) {}
+      const setDk = v => { dk = v; bn.dataset.dark = v ? "1" : "0"; sd.setAttribute("aria-pressed", String(v)); sd.title = v ? "Scène sombre : clique pour une scène claire" : "Scène claire : clique pour une scène sombre"; try { localStorage.setItem("layrys-stage", v ? "dark" : "light"); } catch (e) {} };
+      sd.addEventListener("click", () => setDk(!dk)); setDk(dk); }
     setInterval(splitDraw, 500); fmtViz(); if (ui.page === "image") splitSet(ui.split);
   }
 
