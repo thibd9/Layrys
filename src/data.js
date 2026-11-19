@@ -174,7 +174,7 @@
     def("foil", "f-holo-glitter", "Dorure holo glitter", "film pailleté", N.foil, { blend:B.METAL, tint:"silver", foil:1, sat:0.9, bands:1.2, specPow:16, glare:0.6, pattern:P.GRAIN, scale:110, bump:0.25, relief:0.08, sparkle:0.6 }),
     def("foil", "f-emboss-gold", "Gaufrage doré", "dorure + relief", N.foil, { blend:B.METAL, tint:"gold", foil:1, sat:0.1, specPow:24, glare:0.7, reliefSrc:1, imgRelief:1.8, blur:2.5, relief:1.0, cavity:0.4, warm:0.3 }),
     /* ---- film holographique ---- */
-    def("holo", "h-rainbow", "Holo arc-en-ciel", "film uni", N.holo, { pattern:P.STRIPES, scale:1.4, angle:28, bands:1.6, bump:0.15, relief:0.05, sparkle:0.08, specPow:5, foil:0.7, sat:0.9, ink:0.85, glare:0.45 }),
+    def("holo", "h-rainbow", "Holo arc-en-ciel", "film uni", N.holo, { pattern:P.STRIPES, scale:1.4, angle:28, bands:1.6, bump:0.15, relief:0.05, sparkle:0.08, specPow:5, foil:0.9, sat:0.9, ink:0.85, glare:0.45 }),
     def("holo", "h-lines", "Holo lignes (pillars)", "film à colonnes", N.holo, { pattern:P.LENTICULAR, scale:90, bands:1.4, bump:1.4, relief:0.5, specPow:10, foil:0.85, sat:0.9, glare:0.55 }),
     def("holo", "h-dots", "Holo points (sequins)", "film à points", N.holo, { pattern:P.HEX, scale:52, bands:1.2, bump:1.6, relief:0.2, sparkle:0.5, specPow:14, foil:1, glare:0.6 }),
     def("holo", "h-ice", "Holo cracked ice", "film éclats", N.holo, { pattern:P.CRACKED, scale:5, bands:1.5, bump:1.6, relief:0.4, sparkle:0.5, specPow:14, foil:1, glare:0.6 }),

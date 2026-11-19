@@ -2034,39 +2034,41 @@ void main(){
   vec3 foil=(rainbow*(0.18+0.82*spec)*pedge*(0.55+0.45*broad) + sp*mix(vec3(1.),rainbow,0.5*uSat))*inkVis*edgeF*lightCol;
   vec3 col=img;
   if(uBlend==0){
-    /* holographic film, seen through the ink. A wide spectral gradient lies across the card and slides as the eye and the lamp move; a second grating, crossed, keeps it from being plain stripes.
-       A luminous pillar runs through the lamp across the grooves, white at its heart. Each cell of the pattern has its own groove direction: it shifts the hue a little and, above all,
-       decides when the cell flashes. The film tints the artwork (a silver base, more coloured in the pillar) and its own light is added by colour dodge: blacks stay black, light inks burn
-       into colour, dark inks take a coloured sheen */
-    vec2 dl=Lp.xy-pc; vec2 vw=vec2(sin(uTilt.x), sin(uTilt.y))*1.5+dl*0.55;
+    /* holographic film under the ink. Where it shows, the white of the paper becomes silver: a little darker than paper at rest, brighter than paper where it sends the lamp back.
+       The artwork keeps its own colours: the film does not tint it. Its light comes as bars of pure spectral colour that slide across the card when the eye or the lamp moves;
+       the colours run through the bars because both do not move at the same speed, and the bars are strongest in a pillar that passes through the lamp.
+       Each cell of a pattern has its own groove direction: its bars are out of step with its neighbours, so cells light up one after another.
+       Dark inks hide the film, light inks let it through */
+    vec2 dl=Lp.xy-pc; vec2 vw=vec2(sin(uTilt.x), sin(uTilt.y))*1.6+Lp.xy*0.6;
     float th=(uPattern==1?uAngle:phase*3.14159)+0.6; vec2 gd=vec2(cos(th),sin(th));
-    vec2 gm=vec2(cos(uAngle+0.6), sin(uAngle+0.6)); vec2 gx=vec2(-gm.y,gm.x);
+    vec2 gm=vec2(cos(uAngle+0.6), sin(uAngle+0.6));
     float cell=uPattern==1?0.:1.;
-    float s1=dot(pc,gm)*(0.32+0.42*uBands)+dot(vw,gm)*0.85+(dot(vw,gd)-dot(vw,gm))*0.22*cell+dot(N.xy,gd)*0.36+phase*0.12*cell+uHueShift;
-    float s2=dot(pc,gx)*(0.22+0.3*uBands)-dot(vw,gx)*0.6+phase*0.3*cell+0.31;
-    vec3 c1=uPalette==0?hueRGB(s1):palette(s1); vec3 c2=uPalette==0?hueRGB(s2+0.5):palette(s2+0.4);
-    vec3 dif=mix(c1,c2,0.24); dif=mix(vec3(1.),dif,0.82); dif*=mix(1.,0.74/max(lum(dif),0.22),0.55); dif=mix(vec3(lum(dif)),dif,min(uSat*1.1,1.5));
-    float dg=dot(pc-Lp.xy,gm); float pil=exp(-pow(dg*1.5,2.));
-    /* thinner streaks run beside the pillar, as on a film that is not perfectly flat */
-    float strk=exp(-pow((dg-0.34)*6.,2.))*0.55+exp(-pow((dg+0.46)*8.,2.))*0.4+exp(-pow((dg-0.78)*11.,2.))*0.3;
-    float near=1./(1.+1.5*mix(1.,0.25,uLightSoft)*dot(dl,dl));
-    float flash=mix(1., 0.86+0.7*pow(abs(dot(normalize(vw+vec2(1e-3)),gd)),2.), cell);
+    float u=dot(pc,gm), mv=dot(vw,gm);
+    float co=(dot(vw,gd)-mv)*cell+dot(N.xy,gd)*0.5;
+    float hue=u*(0.7+0.5*uBands)+mv*1.1+co*0.35+phase*0.25*cell+uHueShift;
+    vec3 rb=uPalette==0?hueRGB(hue):palette(hue); rb=mix(vec3(lum(rb)),rb,min(uSat*1.15,1.6));
+    float bars=pow(0.5+0.5*cos(6.2831*(u*(1.3+0.5*uBands)+mv*2.0+co*0.9)),2.2);
+    float pil=exp(-pow((u-dot(Lp.xy,gm))*1.6,2.));
+    float fine=pow(0.5+0.5*cos(6.2831*(u*(5.2+1.2*uBands)+mv*3.4+co*1.6)),3.);
+    float I=(bars*(0.3+0.9*pil)+fine*(0.07+0.2*pil))*(0.85+0.3/(1.+2.*dot(dl,dl)));
 #ifdef HAS_DERIV
-    float cpx=1./max(fwidth(pc.y),1e-5); float ml=1.-0.12*smoothstep(300.,640.,cpx)*(0.5+0.5*sin(dot(pc,gm)*470.));
+    float cpx=1./max(fwidth(pc.y),1e-5); float ml=1.-0.12*smoothstep(300.,640.,cpx)*(0.5+0.5*sin(u*470.));
 #else
     float ml=1.;
 #endif
     vec3 spk=(glitter(cuv,H,150.,0.)+glitter(cuv,H,95.,2.)+glitter(cuv,H,46.,5.)*1.3)*uSparkle;
     float k=clamp(uFoilAmt,0.,1.);
-    float cAmt=clamp((0.2+0.34*pil)*min(uSat,1.4),0.,0.8);
-    vec3 tint=mix(vec3(0.86,0.88,0.92),dif,cAmt);
-    float bright=(0.92+(0.3*pil+0.16*strk)*(0.35+0.65*near)+0.42*spec)*mix(1.,flash,0.6)*mix(1.,pedge,0.3)*ml;
-    vec3 flm=img*tint*bright;
-    vec3 glow=dif*(0.05+(0.36*pil+0.22*strk)*flash)*(0.3+0.7*near)*pedge*edgeF;
-    vec3 hv=(glow+spk*(0.6+0.5*dif))*lightCol*mix(0.55+0.5*lum(img),1.,uInk);
-    vec3 film=min(flm/max(1.-hv*0.62,vec3(0.25)),vec3(1.6))+hv*0.34+lightCol*pow(pil,5.)*near*0.14;
-    foil=(dif*(0.3+0.7*pil)*flash*pedge+spk)*edgeF*lightCol;
-    col=mix(img,film,k)+hv*max(uFoilAmt-1.,0.)*0.7;
+    vec3 em=env(reflect(-V,N));
+    vec3 silver=vec3(0.62,0.64,0.69)*(0.84+0.26*clamp(lum(em),0.,1.2));
+    vec3 base=pow(max(img,0.),vec3(1.06))*silver;
+    vec3 light=(rb*I*pedge*ml+spk*(0.6+0.5*rb))*edgeF*lightCol;
+    /* the ink filters the light of the film: a light ink lets it through, a mid-tone gives it its own colour, a dark one stops it. A face keeps its colour */
+    vec3 thru=mix(img,vec3(1.),0.06+0.12*uInk)*mix(0.42,1.,smoothstep(0.3,0.92,lum(img)));
+    vec3 film=base+light*thru*0.62;
+    film=mix(film,min(base/max(1.-light*0.7,vec3(0.2)),vec3(1.45)),0.3);
+    film+=lightCol*exp(-dot(dl,dl)*7.)*0.08+vec3(spec)*0.08*lightCol;
+    foil=light;
+    col=mix(img,film,k)+light*max(uFoilAmt-1.,0.)*0.6;
   }
   else if(uBlend==2){ float Li=lum(img);
     /* metal foil. The drawing is pressed into it: its lines and shading stay readable and catch the light, instead of a flat coloured shape */
@@ -2291,7 +2293,7 @@ void main(){
     def("foil", "f-holo-glitter", "Dorure holo glitter", "film pailleté", N.foil, { blend:B.METAL, tint:"silver", foil:1, sat:0.9, bands:1.2, specPow:16, glare:0.6, pattern:P.GRAIN, scale:110, bump:0.25, relief:0.08, sparkle:0.6 }),
     def("foil", "f-emboss-gold", "Gaufrage doré", "dorure + relief", N.foil, { blend:B.METAL, tint:"gold", foil:1, sat:0.1, specPow:24, glare:0.7, reliefSrc:1, imgRelief:1.8, blur:2.5, relief:1.0, cavity:0.4, warm:0.3 }),
     /* ---- film holographique ---- */
-    def("holo", "h-rainbow", "Holo arc-en-ciel", "film uni", N.holo, { pattern:P.STRIPES, scale:1.4, angle:28, bands:1.6, bump:0.15, relief:0.05, sparkle:0.08, specPow:5, foil:0.7, sat:0.9, ink:0.85, glare:0.45 }),
+    def("holo", "h-rainbow", "Holo arc-en-ciel", "film uni", N.holo, { pattern:P.STRIPES, scale:1.4, angle:28, bands:1.6, bump:0.15, relief:0.05, sparkle:0.08, specPow:5, foil:0.9, sat:0.9, ink:0.85, glare:0.45 }),
     def("holo", "h-lines", "Holo lignes (pillars)", "film à colonnes", N.holo, { pattern:P.LENTICULAR, scale:90, bands:1.4, bump:1.4, relief:0.5, specPow:10, foil:0.85, sat:0.9, glare:0.55 }),
     def("holo", "h-dots", "Holo points (sequins)", "film à points", N.holo, { pattern:P.HEX, scale:52, bands:1.2, bump:1.6, relief:0.2, sparkle:0.5, specPow:14, foil:1, glare:0.6 }),
     def("holo", "h-ice", "Holo cracked ice", "film éclats", N.holo, { pattern:P.CRACKED, scale:5, bands:1.5, bump:1.6, relief:0.4, sparkle:0.5, specPow:14, foil:1, glare:0.6 }),
@@ -3963,10 +3965,17 @@ ${inner}
   }
   let regenTimer = null;
   function regenSoon(layer) { clearTimeout(regenTimer); regenTimer = setTimeout(() => { regen(layer); refreshLayers(); invalidateThumbs(); ui.dirty = true; }, 50); }
+  /* the zone a finish naturally goes on: hot foil, varnish and embossing follow the lines of the drawing; a film, an ink or a texture covers the card.
+     As long as the user has not chosen a zone himself, changing family moves the finish to its natural zone: a holographic film left on the contours would hardly show */
+  const zoneOf = p => (p && (p.cat === "foil" || p.cat === "varnish" || p.cat === "emboss")) ? 10 : 0;
+  function zoneAfter(layer, p) {
+    const m = layer.fx.mask, prev = PRESET_BY_ID[layer.presetId]; if (p.mask) return [p.mask, p.maskInvert || 0];
+    if (layer.kind === "image" && !layer.fx.zoneUser && !layer.fx.clip && prev && (m === 0 || m === 10) && zoneOf(p) !== m) return [zoneOf(p), 0]; return [m, layer.fx.maskInvert];
+  }
   function applyPreset(layer, id) {
-    const p = PRESET_BY_ID[id]; if (!p) return; const prevBlur = layer.fx.blur; const keepMask = layer.fx.mask, keepInv = layer.fx.maskInvert, keepClip = layer.fx.clip;
-    layer.fx = presetFx(p); layer.presetId = id; ui.baseScale = p.scale; if (keepClip) layer.fx.clip = keepClip;
-    if (p.mask === 0) { layer.fx.mask = keepMask; layer.fx.maskInvert = keepInv; }
+    const p = PRESET_BY_ID[id]; if (!p) return; const prevBlur = layer.fx.blur; const keepClip = layer.fx.clip, zu = layer.fx.zoneUser, z = zoneAfter(layer, p);
+    layer.fx = presetFx(p); layer.presetId = id; ui.baseScale = p.scale; if (keepClip) layer.fx.clip = keepClip; layer.fx.zoneUser = zu ? 1 : 0;
+    if (p.mask === 0) { layer.fx.mask = z[0]; layer.fx.maskInvert = z[1]; }
     if (p.blur !== prevBlur && layer.src) { layer.analysis = analysisFor(layer.src, layer.fx.blur); layer.version++; }
     ui.dirty = true;
   }
@@ -4113,7 +4122,7 @@ ${inner}
   function loadFile(file, cb) { if (!file || !file.type.startsWith("image/")) return; const u = URL.createObjectURL(file); const im = new Image(); im.onload = () => { cb(im, file.name); URL.revokeObjectURL(u); }; im.src = u; }
   function importImages(files) { const doc = curDoc(); [...files].forEach(f => loadFile(f, (im, name) => { const nm = name.replace(/\.[^.]+$/, "").slice(0, 24); ui.imports.unshift({ src: im, name: nm }); addImageLayer(doc, im, nm); toast("Illustration ajoutée : " + name); })); }
   $("#file").addEventListener("change", e => { importImages(e.target.files); e.target.value = ""; });
-  $("#maskfile").addEventListener("change", e => loadFile(e.target.files[0], im => { const l = sel(); if (!l) return; l.maskImg = im; l.maskVersion++; l.fx.mask = 4; syncInspector(); refreshLayers(); commit(); }));
+  $("#maskfile").addEventListener("change", e => loadFile(e.target.files[0], im => { const l = sel(); if (!l) return; l.maskImg = im; l.maskVersion++; l.fx.mask = 4; l.fx.zoneUser = 1; syncInspector(); refreshLayers(); commit(); }));
   $("#depthfile").addEventListener("change", e => loadFile(e.target.files[0], im => { const l = sel(); if (!l) return; l.depthImg = im; l.depthVersion++; l.fx.depthSrc = 4; syncInspector(); }));
   $("#backfile").addEventListener("change", e => loadFile(e.target.files[0], im => { addImageLayer(project.back, im, "Dos importé", "i-none"); if (ui.face !== "back") setFace("back"); }));
   document.addEventListener("paste", e => { if (ui.page !== "atelier" || /input|textarea/i.test(document.activeElement?.tagName || "")) return; const items = [...(e.clipboardData?.items || [])].filter(i => i.type.startsWith("image/")); if (items.length) importImages(items.map(i => i.getAsFile())); });
@@ -4142,7 +4151,7 @@ ${inner}
   function renderCatTabs() { const el = $("#catTabs"); el.innerHTML = ""; for (const [id, label] of NUANCIER) { const b = document.createElement("button"); b.type = "button"; b.className = "pill"; b.textContent = label; b.setAttribute("aria-pressed", String(ui.cat === id && !fxQuery())); b.addEventListener("click", () => { ui.cat = id; ui.fxq = ""; $("#fxSearch").value = ""; renderCatTabs(); renderEffects(); }); el.append(b); } }
   const fxThumbCache = new Map(); let thumbQueue = [], thumbRunning = false;
   function invalidateThumbs() { thumbQueue = []; renderEffects(); }
-  function thumbKey(l, id) { return `${l.id}:${l.version}:${id}:${round(aspect(), 3)}:${selDoc().stock}:${l.fx.mask}`; }
+  function thumbKey(l, id) { return `${l.id}:${l.version}:${id}:${round(aspect(), 3)}:${selDoc().stock}:${l.fx.mask}:${zoneOf(PRESET_BY_ID[l.presetId])}:${l.fx.zoneUser ? 1 : 0}`; }
   function renderEffects() {
     const grid = $("#effects"); grid.innerHTML = ""; const l = sel(); thumbQueue = [];
     const items = (ui.cat === "combo" && !fxQuery()) ? RECIPES.map(([label, desc, r]) => ({ id: "combo:" + label, label, title: desc, recipe: r })) : catPresets().map(p => ({ id: p.id, label: p.label, title: p.sub || p.label, preset: p }));
@@ -4156,7 +4165,7 @@ ${inner}
     }
     pumpThumbs();
   }
-  function applyRecipe(l, r, label, desc) { applyPreset(l, r.preset); l.fx.mask = r.mask; l.fx.maskInvert = 0; if (r.thr) l.fx.maskThr = r.thr; if (r.accent) { l.fx.accent = 1; l.fx.accentType = r.accent[0]; l.fx.accentMask = r.accent[1]; l.fx.accentColor = ""; } else l.fx.accent = 0; toast(label + " · " + desc); }
+  function applyRecipe(l, r, label, desc) { applyPreset(l, r.preset); l.fx.mask = r.mask; l.fx.maskInvert = 0; l.fx.zoneUser = 1; if (r.thr) l.fx.maskThr = r.thr; if (r.accent) { l.fx.accent = 1; l.fx.accentType = r.accent[0]; l.fx.accentMask = r.accent[1]; l.fx.accentColor = ""; } else l.fx.accent = 0; toast(label + " · " + desc); }
   function pumpThumbs() {
     if (thumbRunning) return; thumbRunning = true;
     const step = () => {
@@ -4164,7 +4173,7 @@ ${inner}
       while (thumbQueue.length && n < (ui.quality < 1 ? 1 : 3)) {
         const { it, im, key, l } = thumbQueue.shift(); if (!l.src || !l.analysis) continue;
         thumbCanvas.width = 220; thumbCanvas.height = Math.round(220 / a);
-        let fx; if (it.recipe) { const p = PRESET_BY_ID[it.recipe.preset]; fx = { ...presetFx(p), mask: it.recipe.mask, maskInvert: 0 }; if (it.recipe.thr) fx.maskThr = it.recipe.thr; if (it.recipe.accent) { fx.accent = 1; fx.accentType = it.recipe.accent[0]; fx.accentMask = it.recipe.accent[1]; } } else fx = { ...presetFx(it.preset), mask: it.preset.mask || l.fx.mask, maskInvert: l.fx.maskInvert };
+        let fx; if (it.recipe) { const p = PRESET_BY_ID[it.recipe.preset]; fx = { ...presetFx(p), mask: it.recipe.mask, maskInvert: 0 }; if (it.recipe.thr) fx.maskThr = it.recipe.thr; if (it.recipe.accent) { fx.accent = 1; fx.accentType = it.recipe.accent[0]; fx.accentMask = it.recipe.accent[1]; } } else { const z = zoneAfter(l, it.preset); fx = { ...presetFx(it.preset), mask: z[0], maskInvert: z[1] }; } /* each thumbnail shows the finish on the zone it would take */
         const temp = { ...l, fx }; const doc = { stock: selDoc().stock, layers: [temp], coat: 0 };
         T.renderDoc(doc, { pointer: [0.32, 0.7], tilt: [-0.2, 0.12], aspect: a, intensity: 1, seed: ui.seed, selectedId: null, view: 0 });
         const url = thumbCanvas.toDataURL("image/jpeg", 0.82); fxThumbCache.set(key, url); im.src = url; n++;
@@ -4217,7 +4226,7 @@ ${inner}
   for (const [id, key] of SELS) $("#" + id).addEventListener("change", e => { const l = sel(); if (!l) return; l.fx[key] = +e.target.value; if (key === "accentType") l.fx.accentColor = ""; syncInspector(); commit(); });
   $("#tint").addEventListener("change", e => { const l = sel(); if (l) { l.fx.tint = e.target.value; commit(); } });
   for (const id of ["flatOnly", "accent", "accentInvert", "accentWithin"]) $("#" + id).addEventListener("change", e => { const l = sel(); if (l) { l.fx[id] = e.target.checked ? 1 : 0; syncInspector(); commit(); } });
-  for (const b of $$("#zones [data-mask]")) b.addEventListener("click", () => { const l = sel(); if (!l) { toast("Importe d'abord une illustration"); return; } setBrush(false); l.fx.mask = +b.dataset.mask; if (l.fx.mask === 8 && !l.picks.length) setPicking(1); syncInspector(); refreshLayers(); commit(); });
+  for (const b of $$("#zones [data-mask]")) b.addEventListener("click", () => { const l = sel(); if (!l) { toast("Importe d'abord une illustration"); return; } setBrush(false); l.fx.mask = +b.dataset.mask; l.fx.zoneUser = 1; if (l.fx.mask === 8 && !l.picks.length) setPicking(1); syncInspector(); refreshLayers(); commit(); });
   $("#invertChip").addEventListener("click", () => { const l = sel(); if (l) { l.fx.maskInvert = l.fx.maskInvert ? 0 : 1; syncInspector(); commit(); } });
   for (const b of $$("#accentZones [data-amask]")) b.addEventListener("click", () => { const l = sel(); if (!l) return; l.fx.accentMask = +b.dataset.amask; l.fx.accent = 1; if (l.fx.accentMask === 8 && !l.picks.length) setPicking(2); syncInspector(); commit(); });
   for (const [i, id] of ["wt", "wr", "wb", "wl"].entries()) { $("#" + id).addEventListener("input", e => { const l = sel(); if (l) { l.win[i] = +e.target.value / 100; $("#o-" + id).value = e.target.value + "%"; } }); $("#" + id).addEventListener("change", commit); }
@@ -4242,7 +4251,7 @@ ${inner}
   function brushCanvas(l) { if (!(l.maskImg instanceof HTMLCanvasElement) || !l.maskImg.dataset.brush) { const w = 1024, h = Math.round(1024 * l.h / l.w); const [c, x] = cv(w, h); c.dataset.brush = "1"; if (l.maskImg) x.drawImage(l.maskImg, 0, 0, w, h); else { x.fillStyle = "#000"; x.fillRect(0, 0, w, h); } l.maskImg = c; } return l.maskImg; }
   function setBrush(on) { ui.brush = on; bench.classList.toggle("brushing", on); $("#brushBtn").setAttribute("aria-pressed", String(on || (sel() && sel().fx.mask === 4))); if (on) { setPicking(0); $("#hint").textContent = "Peins sur la carte · Gomme pour retirer · Échap pour terminer"; } else $("#hint").textContent = HINT; }
   function paintAt(l, e) { const c = brushCanvas(l); const x = c.getContext("2d"); const [lu, lv] = layerUV(l, e); const rpx = ui.brushSize / 100 / l.scale * c.width * 0.5; x.fillStyle = ui.brushErase ? "#000" : "#fff"; x.beginPath(); x.arc(lu * c.width, lv * c.height, rpx, 0, Math.PI * 2); x.fill(); l.maskVersion++; ui.dirty = true; }
-  $("#brushBtn").addEventListener("click", () => { const l = sel(); if (!l) { toast("Importe d'abord une illustration"); return; } l.fx.mask = 4; brushCanvas(l); l.maskVersion++; setBrush(true); syncInspector(); refreshLayers(); });
+  $("#brushBtn").addEventListener("click", () => { const l = sel(); if (!l) { toast("Importe d'abord une illustration"); return; } l.fx.mask = 4; l.fx.zoneUser = 1; brushCanvas(l); l.maskVersion++; setBrush(true); syncInspector(); refreshLayers(); });
   $("#brushErase").addEventListener("click", () => { ui.brushErase = !ui.brushErase; $("#brushErase").setAttribute("aria-pressed", String(ui.brushErase)); });
   $("#brushClear").addEventListener("click", () => { const l = sel(); if (!l) return; l.maskImg = null; brushCanvas(l); l.maskVersion++; ui.dirty = true; });
   $("#brushSize").addEventListener("input", e => { ui.brushSize = +e.target.value; $("#o-brushSize").value = e.target.value + "%"; });
@@ -4529,6 +4538,8 @@ ${inner}
       const card = { id: cd.id || uid(), name: cd.name || "Carte " + (ci + 1), rarity: cd.rarity || "", notes: cd.notes || "", thumb: "", pre: null, front: { id: "front", layers: [], stock: (cd.front && cd.front.stock) || "#f6f3ec", coat: 0.6 }, back: { id: "back", layers: [], stock: (cd.back && cd.back.stock) || "#f6f3ec", coat: 0.6 } };
       for (const id of ["front", "back"]) for (const sl of (cd[id] && cd[id].layers) || []) {
         const l = newLayer(sl.kind, sl.name); Object.assign(l, { x: sl.x, y: sl.y, scale: sl.scale, rot: sl.rot, opacity: sl.opacity, blend: sl.blend, visible: sl.visible, fx: { ...base, ...sl.fx }, picks: sl.picks || [], pickTol: sl.pickTol ?? 0.22, win: sl.win || l.win, keep: !!sl.keep, presetId: PRESET_BY_ID[sl.presetId] ? sl.presetId : "i-none", text: { ...l.text, ...sl.text }, frame: { ...l.frame, ...sl.frame }, bg: { ...l.bg, ...sl.bg }, badge: { ...l.badge, ...sl.badge } }); if (ui.backMigrate && l.kind === "back" && l.presetId === "h-rainbow") applyPreset(l, "i-none"); card[id].layers.push(l);
+        /* projects saved before finishes had a natural zone: a holographic film left on the contours by the old default goes back on the whole card */
+        if (sl.kind === "image" && sl.fx && sl.fx.zoneUser === undefined) { const pp = PRESET_BY_ID[l.presetId]; if (pp && pp.cat === "holo" && l.fx.mask === 10 && !l.fx.clip) l.fx.mask = 0; l.fx.zoneUser = 0; }
         if (sl.kind === "image" && sl.src) {
           let pr = null; if (sl.src.startsWith("lib:")) { const art = ART_LIBRARY.find(a => a.id === sl.src.slice(4)); if (art) { l.assetId = art.id; pr = loadArt(art); } } else if (sl.src.startsWith("img:")) { const url = (d.images || {})[sl.src.slice(4)]; if (url) pr = getImg(url); } else pr = getImg(sl.src);
           if (pr) { pending++; pr.then(im => sl.subj && !subjBySrc.get(im) ? getImg(sl.subj).then(si => { si._sid = ++subjSeq; subjBySrc.set(im, si); return im; }, () => im) : im).then(im => { setSrc(l, im); done(); }).catch(done); }
@@ -4621,7 +4632,7 @@ ${inner}
     project.cards.splice(i, 1); regenTokens(); setCard(Math.min(i, project.cards.length - 1)); autosave(); toast("Carte supprimée");
   }
   function moveCard(i, dir) { const j = i + dir; if (j < 0 || j >= project.cards.length) return; const cur = curCard(); [project.cards[i], project.cards[j]] = [project.cards[j], project.cards[i]]; project.cardIndex = project.cards.indexOf(cur); regenTokens(); renderSeries(false); autosave(); }
-  function recipeOn(l, r) { const keep = ui.baseScale; applyPreset(l, r.preset); ui.baseScale = keep; l.fx.mask = r.mask; l.fx.maskInvert = 0; if (r.thr) l.fx.maskThr = r.thr; if (r.accent) { l.fx.accent = 1; l.fx.accentType = r.accent[0]; l.fx.accentMask = r.accent[1]; l.fx.accentColor = ""; } else l.fx.accent = 0; }
+  function recipeOn(l, r) { const keep = ui.baseScale; applyPreset(l, r.preset); ui.baseScale = keep; l.fx.mask = r.mask; l.fx.maskInvert = 0; l.fx.zoneUser = 1; if (r.thr) l.fx.maskThr = r.thr; if (r.accent) { l.fx.accent = 1; l.fx.accentType = r.accent[0]; l.fx.accentMask = r.accent[1]; l.fx.accentColor = ""; } else l.fx.accent = 0; }
   var RARITIES = [
     ["Commune", "impression seule", { preset: "i-none", mask: 0 }],
     ["Peu commune", "vernis sélectif sur le sujet", { preset: "v-gloss", mask: 9 }],
@@ -4843,7 +4854,7 @@ ${inner}
   function applyMaskEditor() {
     const l = ME.layer; if (!l) return; const [c, x] = cv(ME.w, ME.h); x.fillStyle = "#000"; x.fillRect(0, 0, ME.w, ME.h); x.drawImage(ME.mask, 0, 0); c.dataset.brush = "1";
     if (ME.target === "subject") { setSubject(l.src, c); closeMaskEditor(); syncInspector(); refreshLayers(); invalidateThumbs(); autosave(); toast("Sujet corrigé. Les finitions posées sur « Sujet » ou « Fond » le suivent"); return; }
-    const rel = ME.target === "relief"; if (rel) { l.reliefImg = c; l.reliefVersion = (l.reliefVersion || 0) + 1; l.fx.reliefZone = 3; } else { l.maskImg = c; l.maskVersion++; l.fx.mask = 4; l.fx.maskInvert = 0; } closeMaskEditor(); syncInspector(); refreshLayers(); invalidateThumbs(); ui.dirty = true; commit(); toast(rel ? "Zone du relief appliquée" : "Zone appliquée au calque");
+    const rel = ME.target === "relief"; if (rel) { l.reliefImg = c; l.reliefVersion = (l.reliefVersion || 0) + 1; l.fx.reliefZone = 3; } else { l.maskImg = c; l.maskVersion++; l.fx.mask = 4; l.fx.maskInvert = 0; l.fx.zoneUser = 1; } closeMaskEditor(); syncInspector(); refreshLayers(); invalidateThumbs(); ui.dirty = true; commit(); toast(rel ? "Zone du relief appliquée" : "Zone appliquée au calque");
   }
   (function () {
     const wrap = $("#meWrap"), cur = $("#meCursor"), rectEl = $("#meRect");

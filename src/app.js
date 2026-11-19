@@ -117,10 +117,17 @@
   }
   let regenTimer = null;
   function regenSoon(layer) { clearTimeout(regenTimer); regenTimer = setTimeout(() => { regen(layer); refreshLayers(); invalidateThumbs(); ui.dirty = true; }, 50); }
+  /* the zone a finish naturally goes on: hot foil, varnish and embossing follow the lines of the drawing; a film, an ink or a texture covers the card.
+     As long as the user has not chosen a zone himself, changing family moves the finish to its natural zone: a holographic film left on the contours would hardly show */
+  const zoneOf = p => (p && (p.cat === "foil" || p.cat === "varnish" || p.cat === "emboss")) ? 10 : 0;
+  function zoneAfter(layer, p) {
+    const m = layer.fx.mask, prev = PRESET_BY_ID[layer.presetId]; if (p.mask) return [p.mask, p.maskInvert || 0];
+    if (layer.kind === "image" && !layer.fx.zoneUser && !layer.fx.clip && prev && (m === 0 || m === 10) && zoneOf(p) !== m) return [zoneOf(p), 0]; return [m, layer.fx.maskInvert];
+  }
   function applyPreset(layer, id) {
-    const p = PRESET_BY_ID[id]; if (!p) return; const prevBlur = layer.fx.blur; const keepMask = layer.fx.mask, keepInv = layer.fx.maskInvert, keepClip = layer.fx.clip;
-    layer.fx = presetFx(p); layer.presetId = id; ui.baseScale = p.scale; if (keepClip) layer.fx.clip = keepClip;
-    if (p.mask === 0) { layer.fx.mask = keepMask; layer.fx.maskInvert = keepInv; }
+    const p = PRESET_BY_ID[id]; if (!p) return; const prevBlur = layer.fx.blur; const keepClip = layer.fx.clip, zu = layer.fx.zoneUser, z = zoneAfter(layer, p);
+    layer.fx = presetFx(p); layer.presetId = id; ui.baseScale = p.scale; if (keepClip) layer.fx.clip = keepClip; layer.fx.zoneUser = zu ? 1 : 0;
+    if (p.mask === 0) { layer.fx.mask = z[0]; layer.fx.maskInvert = z[1]; }
     if (p.blur !== prevBlur && layer.src) { layer.analysis = analysisFor(layer.src, layer.fx.blur); layer.version++; }
     ui.dirty = true;
   }
@@ -267,7 +274,7 @@
   function loadFile(file, cb) { if (!file || !file.type.startsWith("image/")) return; const u = URL.createObjectURL(file); const im = new Image(); im.onload = () => { cb(im, file.name); URL.revokeObjectURL(u); }; im.src = u; }
   function importImages(files) { const doc = curDoc(); [...files].forEach(f => loadFile(f, (im, name) => { const nm = name.replace(/\.[^.]+$/, "").slice(0, 24); ui.imports.unshift({ src: im, name: nm }); addImageLayer(doc, im, nm); toast("Illustration ajoutée : " + name); })); }
   $("#file").addEventListener("change", e => { importImages(e.target.files); e.target.value = ""; });
-  $("#maskfile").addEventListener("change", e => loadFile(e.target.files[0], im => { const l = sel(); if (!l) return; l.maskImg = im; l.maskVersion++; l.fx.mask = 4; syncInspector(); refreshLayers(); commit(); }));
+  $("#maskfile").addEventListener("change", e => loadFile(e.target.files[0], im => { const l = sel(); if (!l) return; l.maskImg = im; l.maskVersion++; l.fx.mask = 4; l.fx.zoneUser = 1; syncInspector(); refreshLayers(); commit(); }));
   $("#depthfile").addEventListener("change", e => loadFile(e.target.files[0], im => { const l = sel(); if (!l) return; l.depthImg = im; l.depthVersion++; l.fx.depthSrc = 4; syncInspector(); }));
   $("#backfile").addEventListener("change", e => loadFile(e.target.files[0], im => { addImageLayer(project.back, im, "Dos importé", "i-none"); if (ui.face !== "back") setFace("back"); }));
   document.addEventListener("paste", e => { if (ui.page !== "atelier" || /input|textarea/i.test(document.activeElement?.tagName || "")) return; const items = [...(e.clipboardData?.items || [])].filter(i => i.type.startsWith("image/")); if (items.length) importImages(items.map(i => i.getAsFile())); });
@@ -296,7 +303,7 @@
   function renderCatTabs() { const el = $("#catTabs"); el.innerHTML = ""; for (const [id, label] of NUANCIER) { const b = document.createElement("button"); b.type = "button"; b.className = "pill"; b.textContent = label; b.setAttribute("aria-pressed", String(ui.cat === id && !fxQuery())); b.addEventListener("click", () => { ui.cat = id; ui.fxq = ""; $("#fxSearch").value = ""; renderCatTabs(); renderEffects(); }); el.append(b); } }
   const fxThumbCache = new Map(); let thumbQueue = [], thumbRunning = false;
   function invalidateThumbs() { thumbQueue = []; renderEffects(); }
-  function thumbKey(l, id) { return `${l.id}:${l.version}:${id}:${round(aspect(), 3)}:${selDoc().stock}:${l.fx.mask}`; }
+  function thumbKey(l, id) { return `${l.id}:${l.version}:${id}:${round(aspect(), 3)}:${selDoc().stock}:${l.fx.mask}:${zoneOf(PRESET_BY_ID[l.presetId])}:${l.fx.zoneUser ? 1 : 0}`; }
   function renderEffects() {
     const grid = $("#effects"); grid.innerHTML = ""; const l = sel(); thumbQueue = [];
     const items = (ui.cat === "combo" && !fxQuery()) ? RECIPES.map(([label, desc, r]) => ({ id: "combo:" + label, label, title: desc, recipe: r })) : catPresets().map(p => ({ id: p.id, label: p.label, title: p.sub || p.label, preset: p }));
@@ -310,7 +317,7 @@
     }
     pumpThumbs();
   }
-  function applyRecipe(l, r, label, desc) { applyPreset(l, r.preset); l.fx.mask = r.mask; l.fx.maskInvert = 0; if (r.thr) l.fx.maskThr = r.thr; if (r.accent) { l.fx.accent = 1; l.fx.accentType = r.accent[0]; l.fx.accentMask = r.accent[1]; l.fx.accentColor = ""; } else l.fx.accent = 0; toast(label + " · " + desc); }
+  function applyRecipe(l, r, label, desc) { applyPreset(l, r.preset); l.fx.mask = r.mask; l.fx.maskInvert = 0; l.fx.zoneUser = 1; if (r.thr) l.fx.maskThr = r.thr; if (r.accent) { l.fx.accent = 1; l.fx.accentType = r.accent[0]; l.fx.accentMask = r.accent[1]; l.fx.accentColor = ""; } else l.fx.accent = 0; toast(label + " · " + desc); }
   function pumpThumbs() {
     if (thumbRunning) return; thumbRunning = true;
     const step = () => {
@@ -318,7 +325,7 @@
       while (thumbQueue.length && n < (ui.quality < 1 ? 1 : 3)) {
         const { it, im, key, l } = thumbQueue.shift(); if (!l.src || !l.analysis) continue;
         thumbCanvas.width = 220; thumbCanvas.height = Math.round(220 / a);
-        let fx; if (it.recipe) { const p = PRESET_BY_ID[it.recipe.preset]; fx = { ...presetFx(p), mask: it.recipe.mask, maskInvert: 0 }; if (it.recipe.thr) fx.maskThr = it.recipe.thr; if (it.recipe.accent) { fx.accent = 1; fx.accentType = it.recipe.accent[0]; fx.accentMask = it.recipe.accent[1]; } } else fx = { ...presetFx(it.preset), mask: it.preset.mask || l.fx.mask, maskInvert: l.fx.maskInvert };
+        let fx; if (it.recipe) { const p = PRESET_BY_ID[it.recipe.preset]; fx = { ...presetFx(p), mask: it.recipe.mask, maskInvert: 0 }; if (it.recipe.thr) fx.maskThr = it.recipe.thr; if (it.recipe.accent) { fx.accent = 1; fx.accentType = it.recipe.accent[0]; fx.accentMask = it.recipe.accent[1]; } } else { const z = zoneAfter(l, it.preset); fx = { ...presetFx(it.preset), mask: z[0], maskInvert: z[1] }; } /* each thumbnail shows the finish on the zone it would take */
         const temp = { ...l, fx }; const doc = { stock: selDoc().stock, layers: [temp], coat: 0 };
         T.renderDoc(doc, { pointer: [0.32, 0.7], tilt: [-0.2, 0.12], aspect: a, intensity: 1, seed: ui.seed, selectedId: null, view: 0 });
         const url = thumbCanvas.toDataURL("image/jpeg", 0.82); fxThumbCache.set(key, url); im.src = url; n++;
@@ -371,7 +378,7 @@
   for (const [id, key] of SELS) $("#" + id).addEventListener("change", e => { const l = sel(); if (!l) return; l.fx[key] = +e.target.value; if (key === "accentType") l.fx.accentColor = ""; syncInspector(); commit(); });
   $("#tint").addEventListener("change", e => { const l = sel(); if (l) { l.fx.tint = e.target.value; commit(); } });
   for (const id of ["flatOnly", "accent", "accentInvert", "accentWithin"]) $("#" + id).addEventListener("change", e => { const l = sel(); if (l) { l.fx[id] = e.target.checked ? 1 : 0; syncInspector(); commit(); } });
-  for (const b of $$("#zones [data-mask]")) b.addEventListener("click", () => { const l = sel(); if (!l) { toast("Importe d'abord une illustration"); return; } setBrush(false); l.fx.mask = +b.dataset.mask; if (l.fx.mask === 8 && !l.picks.length) setPicking(1); syncInspector(); refreshLayers(); commit(); });
+  for (const b of $$("#zones [data-mask]")) b.addEventListener("click", () => { const l = sel(); if (!l) { toast("Importe d'abord une illustration"); return; } setBrush(false); l.fx.mask = +b.dataset.mask; l.fx.zoneUser = 1; if (l.fx.mask === 8 && !l.picks.length) setPicking(1); syncInspector(); refreshLayers(); commit(); });
   $("#invertChip").addEventListener("click", () => { const l = sel(); if (l) { l.fx.maskInvert = l.fx.maskInvert ? 0 : 1; syncInspector(); commit(); } });
   for (const b of $$("#accentZones [data-amask]")) b.addEventListener("click", () => { const l = sel(); if (!l) return; l.fx.accentMask = +b.dataset.amask; l.fx.accent = 1; if (l.fx.accentMask === 8 && !l.picks.length) setPicking(2); syncInspector(); commit(); });
   for (const [i, id] of ["wt", "wr", "wb", "wl"].entries()) { $("#" + id).addEventListener("input", e => { const l = sel(); if (l) { l.win[i] = +e.target.value / 100; $("#o-" + id).value = e.target.value + "%"; } }); $("#" + id).addEventListener("change", commit); }
@@ -396,7 +403,7 @@
   function brushCanvas(l) { if (!(l.maskImg instanceof HTMLCanvasElement) || !l.maskImg.dataset.brush) { const w = 1024, h = Math.round(1024 * l.h / l.w); const [c, x] = cv(w, h); c.dataset.brush = "1"; if (l.maskImg) x.drawImage(l.maskImg, 0, 0, w, h); else { x.fillStyle = "#000"; x.fillRect(0, 0, w, h); } l.maskImg = c; } return l.maskImg; }
   function setBrush(on) { ui.brush = on; bench.classList.toggle("brushing", on); $("#brushBtn").setAttribute("aria-pressed", String(on || (sel() && sel().fx.mask === 4))); if (on) { setPicking(0); $("#hint").textContent = "Peins sur la carte · Gomme pour retirer · Échap pour terminer"; } else $("#hint").textContent = HINT; }
   function paintAt(l, e) { const c = brushCanvas(l); const x = c.getContext("2d"); const [lu, lv] = layerUV(l, e); const rpx = ui.brushSize / 100 / l.scale * c.width * 0.5; x.fillStyle = ui.brushErase ? "#000" : "#fff"; x.beginPath(); x.arc(lu * c.width, lv * c.height, rpx, 0, Math.PI * 2); x.fill(); l.maskVersion++; ui.dirty = true; }
-  $("#brushBtn").addEventListener("click", () => { const l = sel(); if (!l) { toast("Importe d'abord une illustration"); return; } l.fx.mask = 4; brushCanvas(l); l.maskVersion++; setBrush(true); syncInspector(); refreshLayers(); });
+  $("#brushBtn").addEventListener("click", () => { const l = sel(); if (!l) { toast("Importe d'abord une illustration"); return; } l.fx.mask = 4; l.fx.zoneUser = 1; brushCanvas(l); l.maskVersion++; setBrush(true); syncInspector(); refreshLayers(); });
   $("#brushErase").addEventListener("click", () => { ui.brushErase = !ui.brushErase; $("#brushErase").setAttribute("aria-pressed", String(ui.brushErase)); });
   $("#brushClear").addEventListener("click", () => { const l = sel(); if (!l) return; l.maskImg = null; brushCanvas(l); l.maskVersion++; ui.dirty = true; });
   $("#brushSize").addEventListener("input", e => { ui.brushSize = +e.target.value; $("#o-brushSize").value = e.target.value + "%"; });
@@ -683,6 +690,8 @@
       const card = { id: cd.id || uid(), name: cd.name || "Carte " + (ci + 1), rarity: cd.rarity || "", notes: cd.notes || "", thumb: "", pre: null, front: { id: "front", layers: [], stock: (cd.front && cd.front.stock) || "#f6f3ec", coat: 0.6 }, back: { id: "back", layers: [], stock: (cd.back && cd.back.stock) || "#f6f3ec", coat: 0.6 } };
       for (const id of ["front", "back"]) for (const sl of (cd[id] && cd[id].layers) || []) {
         const l = newLayer(sl.kind, sl.name); Object.assign(l, { x: sl.x, y: sl.y, scale: sl.scale, rot: sl.rot, opacity: sl.opacity, blend: sl.blend, visible: sl.visible, fx: { ...base, ...sl.fx }, picks: sl.picks || [], pickTol: sl.pickTol ?? 0.22, win: sl.win || l.win, keep: !!sl.keep, presetId: PRESET_BY_ID[sl.presetId] ? sl.presetId : "i-none", text: { ...l.text, ...sl.text }, frame: { ...l.frame, ...sl.frame }, bg: { ...l.bg, ...sl.bg }, badge: { ...l.badge, ...sl.badge } }); if (ui.backMigrate && l.kind === "back" && l.presetId === "h-rainbow") applyPreset(l, "i-none"); card[id].layers.push(l);
+        /* projects saved before finishes had a natural zone: a holographic film left on the contours by the old default goes back on the whole card */
+        if (sl.kind === "image" && sl.fx && sl.fx.zoneUser === undefined) { const pp = PRESET_BY_ID[l.presetId]; if (pp && pp.cat === "holo" && l.fx.mask === 10 && !l.fx.clip) l.fx.mask = 0; l.fx.zoneUser = 0; }
         if (sl.kind === "image" && sl.src) {
           let pr = null; if (sl.src.startsWith("lib:")) { const art = ART_LIBRARY.find(a => a.id === sl.src.slice(4)); if (art) { l.assetId = art.id; pr = loadArt(art); } } else if (sl.src.startsWith("img:")) { const url = (d.images || {})[sl.src.slice(4)]; if (url) pr = getImg(url); } else pr = getImg(sl.src);
           if (pr) { pending++; pr.then(im => sl.subj && !subjBySrc.get(im) ? getImg(sl.subj).then(si => { si._sid = ++subjSeq; subjBySrc.set(im, si); return im; }, () => im) : im).then(im => { setSrc(l, im); done(); }).catch(done); }

@@ -284,39 +284,41 @@ void main(){
   vec3 foil=(rainbow*(0.18+0.82*spec)*pedge*(0.55+0.45*broad) + sp*mix(vec3(1.),rainbow,0.5*uSat))*inkVis*edgeF*lightCol;
   vec3 col=img;
   if(uBlend==0){
-    /* holographic film, seen through the ink. A wide spectral gradient lies across the card and slides as the eye and the lamp move; a second grating, crossed, keeps it from being plain stripes.
-       A luminous pillar runs through the lamp across the grooves, white at its heart. Each cell of the pattern has its own groove direction: it shifts the hue a little and, above all,
-       decides when the cell flashes. The film tints the artwork (a silver base, more coloured in the pillar) and its own light is added by colour dodge: blacks stay black, light inks burn
-       into colour, dark inks take a coloured sheen */
-    vec2 dl=Lp.xy-pc; vec2 vw=vec2(sin(uTilt.x), sin(uTilt.y))*1.5+dl*0.55;
+    /* holographic film under the ink. Where it shows, the white of the paper becomes silver: a little darker than paper at rest, brighter than paper where it sends the lamp back.
+       The artwork keeps its own colours: the film does not tint it. Its light comes as bars of pure spectral colour that slide across the card when the eye or the lamp moves;
+       the colours run through the bars because both do not move at the same speed, and the bars are strongest in a pillar that passes through the lamp.
+       Each cell of a pattern has its own groove direction: its bars are out of step with its neighbours, so cells light up one after another.
+       Dark inks hide the film, light inks let it through */
+    vec2 dl=Lp.xy-pc; vec2 vw=vec2(sin(uTilt.x), sin(uTilt.y))*1.6+Lp.xy*0.6;
     float th=(uPattern==1?uAngle:phase*3.14159)+0.6; vec2 gd=vec2(cos(th),sin(th));
-    vec2 gm=vec2(cos(uAngle+0.6), sin(uAngle+0.6)); vec2 gx=vec2(-gm.y,gm.x);
+    vec2 gm=vec2(cos(uAngle+0.6), sin(uAngle+0.6));
     float cell=uPattern==1?0.:1.;
-    float s1=dot(pc,gm)*(0.32+0.42*uBands)+dot(vw,gm)*0.85+(dot(vw,gd)-dot(vw,gm))*0.22*cell+dot(N.xy,gd)*0.36+phase*0.12*cell+uHueShift;
-    float s2=dot(pc,gx)*(0.22+0.3*uBands)-dot(vw,gx)*0.6+phase*0.3*cell+0.31;
-    vec3 c1=uPalette==0?hueRGB(s1):palette(s1); vec3 c2=uPalette==0?hueRGB(s2+0.5):palette(s2+0.4);
-    vec3 dif=mix(c1,c2,0.24); dif=mix(vec3(1.),dif,0.82); dif*=mix(1.,0.74/max(lum(dif),0.22),0.55); dif=mix(vec3(lum(dif)),dif,min(uSat*1.1,1.5));
-    float dg=dot(pc-Lp.xy,gm); float pil=exp(-pow(dg*1.5,2.));
-    /* thinner streaks run beside the pillar, as on a film that is not perfectly flat */
-    float strk=exp(-pow((dg-0.34)*6.,2.))*0.55+exp(-pow((dg+0.46)*8.,2.))*0.4+exp(-pow((dg-0.78)*11.,2.))*0.3;
-    float near=1./(1.+1.5*mix(1.,0.25,uLightSoft)*dot(dl,dl));
-    float flash=mix(1., 0.86+0.7*pow(abs(dot(normalize(vw+vec2(1e-3)),gd)),2.), cell);
+    float u=dot(pc,gm), mv=dot(vw,gm);
+    float co=(dot(vw,gd)-mv)*cell+dot(N.xy,gd)*0.5;
+    float hue=u*(0.7+0.5*uBands)+mv*1.1+co*0.35+phase*0.25*cell+uHueShift;
+    vec3 rb=uPalette==0?hueRGB(hue):palette(hue); rb=mix(vec3(lum(rb)),rb,min(uSat*1.15,1.6));
+    float bars=pow(0.5+0.5*cos(6.2831*(u*(1.3+0.5*uBands)+mv*2.0+co*0.9)),2.2);
+    float pil=exp(-pow((u-dot(Lp.xy,gm))*1.6,2.));
+    float fine=pow(0.5+0.5*cos(6.2831*(u*(5.2+1.2*uBands)+mv*3.4+co*1.6)),3.);
+    float I=(bars*(0.3+0.9*pil)+fine*(0.07+0.2*pil))*(0.85+0.3/(1.+2.*dot(dl,dl)));
 #ifdef HAS_DERIV
-    float cpx=1./max(fwidth(pc.y),1e-5); float ml=1.-0.12*smoothstep(300.,640.,cpx)*(0.5+0.5*sin(dot(pc,gm)*470.));
+    float cpx=1./max(fwidth(pc.y),1e-5); float ml=1.-0.12*smoothstep(300.,640.,cpx)*(0.5+0.5*sin(u*470.));
 #else
     float ml=1.;
 #endif
     vec3 spk=(glitter(cuv,H,150.,0.)+glitter(cuv,H,95.,2.)+glitter(cuv,H,46.,5.)*1.3)*uSparkle;
     float k=clamp(uFoilAmt,0.,1.);
-    float cAmt=clamp((0.2+0.34*pil)*min(uSat,1.4),0.,0.8);
-    vec3 tint=mix(vec3(0.86,0.88,0.92),dif,cAmt);
-    float bright=(0.92+(0.3*pil+0.16*strk)*(0.35+0.65*near)+0.42*spec)*mix(1.,flash,0.6)*mix(1.,pedge,0.3)*ml;
-    vec3 flm=img*tint*bright;
-    vec3 glow=dif*(0.05+(0.36*pil+0.22*strk)*flash)*(0.3+0.7*near)*pedge*edgeF;
-    vec3 hv=(glow+spk*(0.6+0.5*dif))*lightCol*mix(0.55+0.5*lum(img),1.,uInk);
-    vec3 film=min(flm/max(1.-hv*0.62,vec3(0.25)),vec3(1.6))+hv*0.34+lightCol*pow(pil,5.)*near*0.14;
-    foil=(dif*(0.3+0.7*pil)*flash*pedge+spk)*edgeF*lightCol;
-    col=mix(img,film,k)+hv*max(uFoilAmt-1.,0.)*0.7;
+    vec3 em=env(reflect(-V,N));
+    vec3 silver=vec3(0.62,0.64,0.69)*(0.84+0.26*clamp(lum(em),0.,1.2));
+    vec3 base=pow(max(img,0.),vec3(1.06))*silver;
+    vec3 light=(rb*I*pedge*ml+spk*(0.6+0.5*rb))*edgeF*lightCol;
+    /* the ink filters the light of the film: a light ink lets it through, a mid-tone gives it its own colour, a dark one stops it. A face keeps its colour */
+    vec3 thru=mix(img,vec3(1.),0.06+0.12*uInk)*mix(0.42,1.,smoothstep(0.3,0.92,lum(img)));
+    vec3 film=base+light*thru*0.62;
+    film=mix(film,min(base/max(1.-light*0.7,vec3(0.2)),vec3(1.45)),0.3);
+    film+=lightCol*exp(-dot(dl,dl)*7.)*0.08+vec3(spec)*0.08*lightCol;
+    foil=light;
+    col=mix(img,film,k)+light*max(uFoilAmt-1.,0.)*0.6;
   }
   else if(uBlend==2){ float Li=lum(img);
     /* metal foil. The drawing is pressed into it: its lines and shading stay readable and catch the light, instead of a flat coloured shape */

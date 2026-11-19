@@ -37,7 +37,7 @@
     project.cards.splice(i, 1); regenTokens(); setCard(Math.min(i, project.cards.length - 1)); autosave(); toast("Carte supprimée");
   }
   function moveCard(i, dir) { const j = i + dir; if (j < 0 || j >= project.cards.length) return; const cur = curCard(); [project.cards[i], project.cards[j]] = [project.cards[j], project.cards[i]]; project.cardIndex = project.cards.indexOf(cur); regenTokens(); renderSeries(false); autosave(); }
-  function recipeOn(l, r) { const keep = ui.baseScale; applyPreset(l, r.preset); ui.baseScale = keep; l.fx.mask = r.mask; l.fx.maskInvert = 0; if (r.thr) l.fx.maskThr = r.thr; if (r.accent) { l.fx.accent = 1; l.fx.accentType = r.accent[0]; l.fx.accentMask = r.accent[1]; l.fx.accentColor = ""; } else l.fx.accent = 0; }
+  function recipeOn(l, r) { const keep = ui.baseScale; applyPreset(l, r.preset); ui.baseScale = keep; l.fx.mask = r.mask; l.fx.maskInvert = 0; l.fx.zoneUser = 1; if (r.thr) l.fx.maskThr = r.thr; if (r.accent) { l.fx.accent = 1; l.fx.accentType = r.accent[0]; l.fx.accentMask = r.accent[1]; l.fx.accentColor = ""; } else l.fx.accent = 0; }
   var RARITIES = [
     ["Commune", "impression seule", { preset: "i-none", mask: 0 }],
     ["Peu commune", "vernis sélectif sur le sujet", { preset: "v-gloss", mask: 9 }],
@@ -259,7 +259,7 @@
   function applyMaskEditor() {
     const l = ME.layer; if (!l) return; const [c, x] = cv(ME.w, ME.h); x.fillStyle = "#000"; x.fillRect(0, 0, ME.w, ME.h); x.drawImage(ME.mask, 0, 0); c.dataset.brush = "1";
     if (ME.target === "subject") { setSubject(l.src, c); closeMaskEditor(); syncInspector(); refreshLayers(); invalidateThumbs(); autosave(); toast("Sujet corrigé. Les finitions posées sur « Sujet » ou « Fond » le suivent"); return; }
-    const rel = ME.target === "relief"; if (rel) { l.reliefImg = c; l.reliefVersion = (l.reliefVersion || 0) + 1; l.fx.reliefZone = 3; } else { l.maskImg = c; l.maskVersion++; l.fx.mask = 4; l.fx.maskInvert = 0; } closeMaskEditor(); syncInspector(); refreshLayers(); invalidateThumbs(); ui.dirty = true; commit(); toast(rel ? "Zone du relief appliquée" : "Zone appliquée au calque");
+    const rel = ME.target === "relief"; if (rel) { l.reliefImg = c; l.reliefVersion = (l.reliefVersion || 0) + 1; l.fx.reliefZone = 3; } else { l.maskImg = c; l.maskVersion++; l.fx.mask = 4; l.fx.maskInvert = 0; l.fx.zoneUser = 1; } closeMaskEditor(); syncInspector(); refreshLayers(); invalidateThumbs(); ui.dirty = true; commit(); toast(rel ? "Zone du relief appliquée" : "Zone appliquée au calque");
   }
   (function () {
     const wrap = $("#meWrap"), cur = $("#meCursor"), rectEl = $("#meRect");
